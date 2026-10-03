@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/MoonBot.App/MoonBot.App.csproj" />
     <Project Path="src/MoonBot.Core/MoonBot.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
