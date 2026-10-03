@@ -25,4 +25,19 @@ public class MoonStateMachineTests
         Assert.True(result);
         Assert.Equal(MoonState.Thinking, machine.Current);
     }
+
+    [Fact]
+    public void TryChangeTo_FromSleepingToWorking_ReturnsFalseAndKeepsState()
+    {
+        // Arrange: llevo la máquina a Sleeping (Idle -> Sleeping es legal)
+        var machine = new MoonStateMachine();
+        machine.TryChangeTo(MoonState.Sleeping);
+
+        // Act: intento un cambio ilegal
+        var result = machine.TryChangeTo(MoonState.Working);
+
+        // Assert: se rechaza y el estado no cambia
+        Assert.False(result);
+        Assert.Equal(MoonState.Sleeping, machine.Current);
+    }
 }
