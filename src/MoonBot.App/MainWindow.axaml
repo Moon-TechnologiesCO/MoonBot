@@ -2,8 +2,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:local="using:MoonBot.App"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="520"
         x:Class="MoonBot.App.MainWindow"
-        Title="MoonBot.App">
-    Welcome to Avalonia!
+        Width="420" Height="520"
+        Background="#0B1026"
+        Title="MoonBot">
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" Margin="20,20,20,0" Padding="16,12" MinHeight="48"
+                CornerRadius="14" Background="#1B2140" HorizontalAlignment="Center">
+            <TextBlock x:Name="Bubble" Foreground="#E8E4D4" FontSize="16"
+                       TextWrapping="Wrap" MaxWidth="340" />
+        </Border>
+        <local:MoonView x:Name="Moon" Grid.Row="1" />
+    </Grid>
 </Window>
