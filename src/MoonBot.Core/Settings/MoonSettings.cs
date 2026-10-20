@@ -1,3 +1,5 @@
+using MoonBot.Core.Placement;
+
 namespace MoonBot.Core.Settings;
 
 public enum ProviderKind { Ollama, OpenAiCompatible }
@@ -12,6 +14,18 @@ public sealed record MoonSettings
     public string BaseUrl { get; init; } = "http://localhost:11434";
     public string Model { get; init; } = "gemma3:4b";
     public int SleepAfterMinutes { get; init; } = 2;
+
+    // Apariencia de la luna.
+    public string Skin { get; init; } = "classic";
+    public string Accessory { get; init; } = "none";
+
+    // Dónde vive la luna en la pantalla. CustomX/CustomY solo se usan con PlacementMode.Custom.
+    public PlacementMode Placement { get; init; } = PlacementMode.Auto;
+    public int? CustomX { get; init; }
+    public int? CustomY { get; init; }
+
+    // Herramientas de archivos (buscar, crear carpeta, renombrar, mover). Los cambios piden permiso siempre.
+    public bool ToolsEnabled { get; init; } = true;
 }
 
 public interface ISettingsStore

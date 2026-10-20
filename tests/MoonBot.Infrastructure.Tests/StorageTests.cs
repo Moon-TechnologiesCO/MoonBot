@@ -29,7 +29,9 @@ public sealed class StorageTests : IDisposable
         var settings = new MoonSettings
         {
             Language = "es", UserName = "JD", Provider = ProviderKind.OpenAiCompatible,
-            BaseUrl = "https://api.example.com/v1", Model = "m", SleepAfterMinutes = 5
+            BaseUrl = "https://api.example.com/v1", Model = "m", SleepAfterMinutes = 5,
+            Skin = "sakura", Accessory = "nightcap", Placement = MoonBot.Core.Placement.PlacementMode.Custom,
+            CustomX = 100, CustomY = -40, ToolsEnabled = false
         };
 
         store.Save(settings);

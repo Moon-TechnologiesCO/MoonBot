@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using MoonBot.Core.Chat;
 
 namespace MoonBot.Infrastructure.Ai;
@@ -46,8 +47,13 @@ internal static class HttpSafety
         using (response)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new AiProviderException(AiErrorKind.Status,
-                $"{(int)response.StatusCode} {ExtractErrorMessage(body)}");
+            var message = ExtractErrorMessage(body);
+
+            // Ollama: "registry.ollama.ai/library/gemma3:4b does not support tools"
+            if (message.Contains("does not support tools", StringComparison.OrdinalIgnoreCase))
+                throw new AiProviderException(AiErrorKind.ToolsNotSupported, message);
+
+            throw new AiProviderException(AiErrorKind.Status, $"{(int)response.StatusCode} {message}");
         }
     }
 
@@ -76,6 +82,33 @@ internal static class HttpSafety
     {
         ChatRole.System => "system",
         ChatRole.Assistant => "assistant",
+        ChatRole.Tool => "tool",
         _ => "user"
     };
+
+    // Formato común de herramientas: [{type:"function", function:{name, description, parameters}}].
+    public static JsonArray ToolsJson(IReadOnlyList<ToolDefinition> tools)
+        => new(tools.Select(t => (JsonNode?)new JsonObject
+        {
+            ["type"] = "function",
+            ["function"] = new JsonObject
+            {
+                ["name"] = t.Name,
+                ["description"] = t.Description,
+                ["parameters"] = JsonNode.Parse(t.ParametersJsonSchema)
+            }
+        }).ToArray());
+
+    // Los argumentos los escribió el modelo: si no son un objeto JSON válido, se mandan vacíos.
+    public static JsonNode ParseObjectOrEmpty(string json)
+    {
+        try
+        {
+            return JsonNode.Parse(json) as JsonObject ?? new JsonObject();
+        }
+        catch (JsonException)
+        {
+            return new JsonObject();
+        }
+    }
 }

@@ -10,15 +10,15 @@ public class ChatSessionTests
     {
         public IReadOnlyList<ChatMessage>? LastConversation { get; private set; }
 
-        public async IAsyncEnumerable<string> StreamReplyAsync(IReadOnlyList<ChatMessage> conversation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<AiEvent> StreamAsync(IReadOnlyList<ChatMessage> conversation,
+            IReadOnlyList<ToolDefinition> tools, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             LastConversation = conversation.ToList();
             foreach (var chunk in chunks)
             {
                 await Task.Yield();
                 cancellationToken.ThrowIfCancellationRequested();
-                yield return chunk;
+                yield return new AiTextDelta(chunk);
             }
         }
 
@@ -28,8 +28,8 @@ public class ChatSessionTests
 
     private sealed class FailingAiProvider : IAiProvider
     {
-        public async IAsyncEnumerable<string> StreamReplyAsync(IReadOnlyList<ChatMessage> conversation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<AiEvent> StreamAsync(IReadOnlyList<ChatMessage> conversation,
+            IReadOnlyList<ToolDefinition> tools, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await Task.Yield();
             throw new AiProviderException(AiErrorKind.Connection, "server is down");
@@ -61,7 +61,7 @@ public class ChatSessionTests
         var session = new ChatSession(new FakeAiProvider("a", "b", "c"), new MoonStateMachine());
         var seen = new List<string>();
 
-        await session.SendAsync("x", seen.Add, CancellationToken.None);
+        await session.SendAsync("x", new ChatObserver { OnText = seen.Add }, CancellationToken.None);
 
         Assert.Equal(["a", "b", "c"], seen);
     }
@@ -147,11 +147,11 @@ public class ChatSessionTests
     // Proveedor que no responde hasta que se abra la "puerta". Espera con await, sin bloquear hilos.
     private sealed class GatedAiProvider(Task gate) : IAiProvider
     {
-        public async IAsyncEnumerable<string> StreamReplyAsync(IReadOnlyList<ChatMessage> conversation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<AiEvent> StreamAsync(IReadOnlyList<ChatMessage> conversation,
+            IReadOnlyList<ToolDefinition> tools, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await gate;
-            yield return "done";
+            yield return new AiTextDelta("done");
         }
 
         public Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken)

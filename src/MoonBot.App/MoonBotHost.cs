@@ -121,8 +121,8 @@ public sealed class MoonBotHost : IDisposable
     // Proveedor que explica por qué no se pudo crear el real, en lugar de tumbar la app.
     private sealed class BrokenProvider(Exception reason) : IAiProvider
     {
-        public async IAsyncEnumerable<string> StreamReplyAsync(IReadOnlyList<ChatMessage> conversation,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<AiEvent> StreamAsync(IReadOnlyList<ChatMessage> conversation,
+            IReadOnlyList<ToolDefinition> tools, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await System.Threading.Tasks.Task.Yield();
             throw reason;

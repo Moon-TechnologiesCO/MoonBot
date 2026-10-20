@@ -13,6 +13,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using MoonBot.Core;
+using MoonBot.Core.Chat;
 using MoonBot.Core.Localization;
 using MoonBot.Core.Settings;
 using MoonBot.Infrastructure.Ai;
@@ -229,7 +230,7 @@ public partial class PanelWindow : Window
         _replyCts = new CancellationTokenSource();
         try
         {
-            await _host.Chat.SendAsync(text, chunk => OnUi(() =>
+            await _host.Chat.SendAsync(text, new ChatObserver { OnText = chunk => OnUi(() =>
             {
                 if (reply.IsPending)
                 {
@@ -238,7 +239,7 @@ public partial class PanelWindow : Window
                 }
                 reply.Text += chunk;
                 ScrollToEnd();
-            }), _replyCts.Token);
+            }) }, _replyCts.Token);
         }
         catch (OperationCanceledException)
         {

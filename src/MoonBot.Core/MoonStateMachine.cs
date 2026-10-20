@@ -7,7 +7,7 @@ public class MoonStateMachine
         [MoonState.Sleeping] = [MoonState.Idle, MoonState.Error],
         [MoonState.Idle]     = [MoonState.Sleeping, MoonState.Thinking, MoonState.Error],
         [MoonState.Thinking] = [MoonState.Working, MoonState.Idle, MoonState.Error],
-        [MoonState.Working]  = [MoonState.Idle, MoonState.Error],
+        [MoonState.Working]  = [MoonState.Thinking, MoonState.Idle, MoonState.Error],
         [MoonState.Error]    = [MoonState.Idle]
     };
 

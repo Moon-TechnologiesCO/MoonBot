@@ -14,8 +14,9 @@ public class ProviderTests
     private static async Task<string> ReadAll(IAiProvider provider)
     {
         var parts = new List<string>();
-        await foreach (var chunk in provider.StreamReplyAsync(Conversation, CancellationToken.None))
-            parts.Add(chunk);
+        await foreach (var item in provider.StreamAsync(Conversation, [], CancellationToken.None))
+            if (item is AiTextDelta delta)
+                parts.Add(delta.Text);
         return string.Join("|", parts);
     }
 
@@ -164,5 +165,94 @@ public class ProviderTests
 
         Assert.IsType<OllamaProvider>(ollama);
         Assert.IsType<OpenAiCompatibleProvider>(openAi);
+    }
+}
+
+public class ProviderToolTests
+{
+    private static readonly ToolDefinition Search =
+        new("search_files", "find", """{"type":"object","properties":{"query":{"type":"string"}}}""");
+
+    private static async Task<List<AiEvent>> Collect(IAiProvider provider, IReadOnlyList<ChatMessage> conversation)
+    {
+        var events = new List<AiEvent>();
+        await foreach (var item in provider.StreamAsync(conversation, [Search], CancellationToken.None))
+            events.Add(item);
+        return events;
+    }
+
+    [Fact]
+    public async Task Ollama_ParsesToolCalls_AndSendsToolDefinitions()
+    {
+        var handler = new FakeHttpHandler(HttpStatusCode.OK, """
+            {"message":{"role":"assistant","content":"","tool_calls":[{"id":"call_1","function":{"index":0,"name":"search_files","arguments":{"query":"budget"}}}]},"done":false}
+            {"message":{"role":"assistant","content":""},"done":true}
+            """);
+        var provider = new OllamaProvider(new HttpClient(handler), new Uri("http://localhost:11434"), "m");
+
+        var events = await Collect(provider, [new ChatMessage(ChatRole.User, "find budget")]);
+
+        var call = Assert.Single(Assert.Single(events.OfType<AiToolCalls>()).Calls);
+        Assert.Equal(("call_1", "search_files"), (call.Id, call.Name));
+        Assert.Equal("budget", JsonDocument.Parse(call.ArgumentsJson).RootElement.GetProperty("query").GetString());
+        using var body = JsonDocument.Parse(handler.LastRequestBody!);
+        Assert.Equal("search_files", body.RootElement.GetProperty("tools")[0].GetProperty("function").GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task Ollama_SendsToolResultsBackWithTheToolName()
+    {
+        var handler = new FakeHttpHandler(HttpStatusCode.OK, """{"done":true}""");
+        var provider = new OllamaProvider(new HttpClient(handler), new Uri("http://localhost:11434"), "m");
+        var call = new ToolCall("call_1", "search_files", """{"query":"budget"}""");
+
+        await Collect(provider,
+        [
+            new ChatMessage(ChatRole.User, "find budget"),
+            new ChatMessage(ChatRole.Assistant, "") { ToolCalls = [call] },
+            new ChatMessage(ChatRole.Tool, """{"count":0}""") { ToolCallId = "call_1", ToolName = "search_files" }
+        ]);
+
+        using var body = JsonDocument.Parse(handler.LastRequestBody!);
+        var messages = body.RootElement.GetProperty("messages");
+        Assert.Equal("budget", messages[1].GetProperty("tool_calls")[0].GetProperty("function")
+            .GetProperty("arguments").GetProperty("query").GetString());
+        Assert.Equal("tool", messages[2].GetProperty("role").GetString());
+        Assert.Equal("search_files", messages[2].GetProperty("tool_name").GetString());
+    }
+
+    [Fact]
+    public async Task Ollama_ModelWithoutTools_BecomesToolsNotSupported()
+    {
+        var handler = new FakeHttpHandler(HttpStatusCode.BadRequest,
+            """{"error":"registry.ollama.ai/library/gemma3:4b does not support tools"}""");
+        var provider = new OllamaProvider(new HttpClient(handler), new Uri("http://localhost:11434"), "gemma3:4b");
+
+        var error = await Assert.ThrowsAsync<AiProviderException>(
+            () => Collect(provider, [new ChatMessage(ChatRole.User, "x")]));
+
+        Assert.Equal(AiErrorKind.ToolsNotSupported, error.Kind);
+    }
+
+    [Fact]
+    public async Task OpenAi_JoinsToolCallArgumentsStreamedInPieces()
+    {
+        var handler = new FakeHttpHandler(HttpStatusCode.OK, """
+            data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_9","function":{"name":"search_files","arguments":""}}]}}]}
+
+            data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"que"}}]}}]}
+
+            data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"ry\":\"tax\"}"}}]}}]}
+
+            data: [DONE]
+
+            """);
+        var provider = new OpenAiCompatibleProvider(new HttpClient(handler), new Uri("https://api.example.com/v1"), "m", "sk");
+
+        var events = await Collect(provider, [new ChatMessage(ChatRole.User, "x")]);
+
+        var call = Assert.Single(Assert.Single(events.OfType<AiToolCalls>()).Calls);
+        Assert.Equal("call_9", call.Id);
+        Assert.Equal("""{"query":"tax"}""", call.ArgumentsJson);
     }
 }
