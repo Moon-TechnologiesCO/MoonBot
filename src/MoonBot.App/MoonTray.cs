@@ -8,16 +8,34 @@ using MoonBot.Core;
 
 namespace MoonBot.App;
 
-// Ícono de la bandeja del sistema con su menú.
+// Ícono de la bandeja del sistema con su menú. El menú se reconstruye al cambiar de idioma.
 public static class MoonTray
 {
-    public static TrayIcon Create(MainWindow window, MoonStateMachine machine, Action quit)
+    public static TrayIcon Create(MoonBotHost host, MainWindow moon, PanelWindow panel, Action quit)
     {
+        var tray = new TrayIcon
+        {
+            Icon = CreateIcon(),
+            ToolTipText = "MoonBot",
+            Menu = BuildMenu(host, moon, panel, quit)
+        };
+        tray.Clicked += (_, _) => panel.Open(PanelPage.Chat);
+        host.SettingsChanged += (_, _) => tray.Menu = BuildMenu(host, moon, panel, quit);
+        return tray;
+    }
+
+    private static NativeMenu BuildMenu(MoonBotHost host, MainWindow moon, PanelWindow panel, Action quit)
+    {
+        var t = host.Text;
+        var machine = host.Machine;
         var menu = new NativeMenu();
 
-        menu.Items.Add(Item("Mostrar / ocultar", window.ToggleVisible));
-        menu.Items.Add(Item("Dormir", () => machine.TryChangeTo(MoonState.Sleeping)));
-        menu.Items.Add(Item("Despertar", () => machine.TryChangeTo(MoonState.Idle)));
+        menu.Items.Add(Item(t["tray.open"], () => panel.Open(PanelPage.Chat)));
+        menu.Items.Add(Item(t["nav.settings"], () => panel.Open(PanelPage.Settings)));
+        menu.Items.Add(Item(t["tray.toggleMoon"], moon.ToggleVisible));
+        menu.Items.Add(new NativeMenuItemSeparator());
+        menu.Items.Add(Item(t["tray.sleep"], () => machine.TryChangeTo(MoonState.Sleeping)));
+        menu.Items.Add(Item(t["tray.wake"], () => machine.TryChangeTo(MoonState.Idle)));
 
 #if DEBUG
         // Solo en Debug: forzar estados para probar las animaciones.
@@ -29,23 +47,18 @@ public static class MoonTray
             {
                 var from = machine.Current;
                 if (!machine.TryChangeTo(state))
-                    window.Say($"No puedo pasar de {from} a {state}.");
+                {
+                    moon.Say(t.Format("moon.cantChange", from, state));
+                    host.Log.Info($"Rejected transition {from} -> {state}");
+                }
             }));
         }
-        menu.Items.Add(new NativeMenuItem("Probar estado (debug)") { Menu = states });
+        menu.Items.Add(new NativeMenuItem(t["tray.testState"]) { Menu = states });
 #endif
 
         menu.Items.Add(new NativeMenuItemSeparator());
-        menu.Items.Add(Item("Salir", quit));
-
-        var tray = new TrayIcon
-        {
-            Icon = CreateIcon(),
-            ToolTipText = "MoonBot",
-            Menu = menu
-        };
-        tray.Clicked += (_, _) => window.ToggleVisible();
-        return tray;
+        menu.Items.Add(Item(t["tray.quit"], quit));
+        return menu;
     }
 
     private static NativeMenuItem Item(string header, Action onClick)

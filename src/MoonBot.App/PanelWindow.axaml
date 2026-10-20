@@ -1,0 +1,220 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:MoonBot.App"
+        x:Class="MoonBot.App.PanelWindow"
+        Width="960" Height="660" MinWidth="760" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource NightBrush}"
+        Foreground="{StaticResource TextBrush}"
+        Title="MoonBot">
+
+    <Window.Resources>
+        <StreamGeometry x:Key="IconChat">M4,3 H20 A2,2 0 0 1 22,5 V15 A2,2 0 0 1 20,17 H9 L4,21 V17 A2,2 0 0 1 2,15 V5 A2,2 0 0 1 4,3 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconSettings">M3,5 H21 V7 H3 Z M3,11 H21 V13 H3 Z M3,17 H21 V19 H3 Z M8,3 A3,3 0 1 1 8,9 A3,3 0 1 1 8,3 Z M16,9 A3,3 0 1 1 16,15 A3,3 0 1 1 16,9 Z M10,15 A3,3 0 1 1 10,21 A3,3 0 1 1 10,15 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconInfo">F0 M12,2 A10,10 0 1 1 12,22 A10,10 0 1 1 12,2 Z M11,10 H13 V17 H11 Z M11,6 H13 V8 H11 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconSend">M3,20 L22,12 L3,4 L3,10 L15,12 L3,14 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconStop">M7,7 H17 V17 H7 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconPlus">M11,4 H13 V11 H20 V13 H13 V20 H11 V13 H4 V11 H11 Z</StreamGeometry>
+    </Window.Resources>
+
+    <Grid ColumnDefinitions="236,*">
+
+        <!-- ===== Barra lateral ===== -->
+        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="#1C2450" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="14,18,14,16">
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="4,0,0,0">
+                    <local:MoonView x:Name="Logo" Width="52" Height="52" IsHitTestVisible="False" />
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="MoonBot" FontSize="18" FontWeight="SemiBold" />
+                        <TextBlock x:Name="Tagline" Classes="muted" FontSize="11.5" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,26,0,0" Spacing="4">
+                    <Button x:Name="NavChat" Classes="nav">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconChat}" Width="16" Height="16" />
+                            <TextBlock x:Name="NavChatText" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="NavSettings" Classes="nav">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" />
+                            <TextBlock x:Name="NavSettingsText" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="NavAbout" Classes="nav">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconInfo}" Width="16" Height="16" />
+                            <TextBlock x:Name="NavAboutText" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Estado actual: punto de color + estado + modelo -->
+                <Border Grid.Row="3" Classes="card" Padding="12,10" CornerRadius="12">
+                    <StackPanel Spacing="2">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="#7FE0A0" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText" FontSize="12.5" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="StatusModel" Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ===== Página: Chat ===== -->
+        <Grid x:Name="ChatPage" Grid.Column="1" RowDefinitions="Auto,*,Auto">
+            <Grid Margin="32,22,32,6" ColumnDefinitions="*,Auto">
+                <StackPanel>
+                    <TextBlock x:Name="ChatTitle" Classes="h1" />
+                    <TextBlock x:Name="ChatSubtitle" Classes="muted" FontSize="12.5" />
+                </StackPanel>
+                <Button x:Name="NewChatButton" Grid.Column="1" Classes="ghost" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="{StaticResource IconPlus}" Width="12" Height="12" />
+                        <TextBlock x:Name="NewChatText" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <ScrollViewer x:Name="ChatScroll" Grid.Row="1" Padding="32,8,32,8">
+                <ItemsControl x:Name="Messages">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:ChatItem">
+                            <Border Margin="0,5" Padding="15,10" MaxWidth="620"
+                                    HorizontalAlignment="{Binding Alignment}"
+                                    Background="{Binding Background}"
+                                    BorderBrush="{Binding BorderBrush}" BorderThickness="1"
+                                    CornerRadius="{Binding Corners}">
+                                <local:MarkdownText Markdown="{Binding Text}" Foreground="{Binding Foreground}"
+                                                    TextWrapping="Wrap" FontSize="14" LineHeight="21" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <StackPanel x:Name="EmptyState" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                        MaxWidth="480" Spacing="8">
+                <local:MoonView x:Name="EmptyMoon" Width="150" Height="150" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyTitle" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock x:Name="EmptyBody" Classes="muted" TextWrapping="Wrap" TextAlignment="Center" />
+                <StackPanel Spacing="8" Margin="0,14,0,0">
+                    <Button x:Name="Suggestion1" Classes="suggestion" />
+                    <Button x:Name="Suggestion2" Classes="suggestion" />
+                    <Button x:Name="Suggestion3" Classes="suggestion" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Compositor -->
+            <Border Grid.Row="2" Margin="28,6,28,22" Padding="6,6,6,6" CornerRadius="18"
+                    Background="{StaticResource CardBrush}" BorderBrush="{StaticResource CardBorderBrush}"
+                    BorderThickness="1" BoxShadow="0 6 20 0 #40000000">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox x:Name="Input" Classes="bare" AcceptsReturn="True" TextWrapping="Wrap"
+                             MaxHeight="170" MinHeight="40" FontSize="14" VerticalContentAlignment="Center"
+                             Padding="10,8" />
+                    <Button x:Name="SendButton" Grid.Column="1" Classes="primary" Width="42" Height="42"
+                            Padding="0" CornerRadius="13" VerticalAlignment="Bottom"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <PathIcon Data="{StaticResource IconSend}" Width="16" Height="16" />
+                    </Button>
+                    <Button x:Name="StopButton" Grid.Column="1" Classes="ghost" Width="42" Height="42"
+                            Padding="0" CornerRadius="13" VerticalAlignment="Bottom" IsVisible="False"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <PathIcon Data="{StaticResource IconStop}" Width="14" Height="14" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ===== Página: Ajustes ===== -->
+        <ScrollViewer x:Name="SettingsPage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="32,22,32,28" MaxWidth="660" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="SettingsTitle" Classes="h1" />
+
+                <Border Classes="card">
+                    <StackPanel>
+                        <TextBlock x:Name="GeneralTitle" Classes="h2" />
+                        <TextBlock x:Name="LanguageLabel" Classes="label" />
+                        <ComboBox x:Name="LanguageBox" MinWidth="260" />
+                        <TextBlock x:Name="NameLabel" Classes="label" />
+                        <TextBox x:Name="NameBox" MaxWidth="360" HorizontalAlignment="Left" MinWidth="360" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel>
+                        <TextBlock x:Name="AiTitle" Classes="h2" />
+                        <TextBlock x:Name="ProviderLabel" Classes="label" />
+                        <ComboBox x:Name="ProviderBox" MinWidth="360" />
+                        <TextBlock x:Name="UrlLabel" Classes="label" />
+                        <TextBox x:Name="UrlBox" MinWidth="360" MaxWidth="460" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="ModelLabel" Classes="label" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoCompleteBox x:Name="ModelBox" Width="300" MinimumPrefixLength="0" FilterMode="Contains" />
+                            <Button x:Name="RefreshModelsButton" Classes="ghost" />
+                        </StackPanel>
+
+                        <StackPanel x:Name="KeySection">
+                            <TextBlock x:Name="KeyLabel" Classes="label" />
+                            <TextBox x:Name="KeyBox" PasswordChar="•" MinWidth="360" MaxWidth="460" HorizontalAlignment="Left" />
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                                <TextBlock x:Name="KeyStatus" Classes="muted" FontSize="12.5" VerticalAlignment="Center" />
+                                <Button x:Name="RemoveKeyButton" Classes="ghost" Padding="10,4" FontSize="12" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                            <Button x:Name="TestButton" Classes="ghost" />
+                            <TextBlock x:Name="TestResult" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                    <StackPanel>
+                        <TextBlock x:Name="BehaviorTitle" Classes="h2" />
+                        <TextBlock x:Name="SleepLabel" Classes="label" />
+                        <NumericUpDown x:Name="SleepBox" Minimum="1" Maximum="120" Increment="1"
+                                       FormatString="0" Width="160" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <Button x:Name="SaveButton" Classes="primary" />
+                    <TextBlock x:Name="SaveStatus" VerticalAlignment="Center" FontSize="13" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Página: Acerca de ===== -->
+        <ScrollViewer x:Name="AboutPage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="32,22,32,28" MaxWidth="660" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="AboutTitle" Classes="h1" />
+                <Border Classes="card">
+                    <StackPanel Orientation="Horizontal" Spacing="18">
+                        <local:MoonView Width="96" Height="96" IsHitTestVisible="False" />
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="MoonBot" FontSize="26" FontWeight="SemiBold" />
+                            <TextBlock x:Name="AboutTagline" Classes="muted" />
+                            <TextBlock x:Name="AboutVersion" Classes="muted" FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Classes="card">
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="PrivacyTitle" Classes="h2" />
+                        <TextBlock x:Name="PrivacyText" TextWrapping="Wrap" LineHeight="21" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button x:Name="OpenLogsButton" Classes="ghost" />
+                    <Button x:Name="OpenDataButton" Classes="ghost" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

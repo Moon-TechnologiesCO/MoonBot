@@ -8,42 +8,41 @@ using MoonBot.Core;
 
 namespace MoonBot.App;
 
+// La luna flotante. Muestra el estado y frases cortas; un clic abre el panel.
 public partial class MainWindow : Window
 {
-    private const string UserName = "JD"; // provisional
-    private static readonly TimeSpan SleepAfter = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan BubbleLingers = TimeSpan.FromSeconds(4);
 
-    private readonly MoonStateMachine _machine;
+    private readonly MoonBotHost _host;
     private readonly DispatcherTimer _typeTimer;
     private readonly DispatcherTimer _idleTimer;
     private readonly DispatcherTimer _hideBubbleTimer;
     private string _fullText = "";
     private int _shown;
 
-    // Solo para el diseñador de Avalonia, que necesita un constructor sin parámetros.
-    public MainWindow() : this(new MoonStateMachine()) { }
+    // Solo para el diseñador de Avalonia.
+    public MainWindow() : this(new MoonBotHost()) { }
 
-    // La ventana no crea su máquina de estados: se la entregan (inyección por constructor).
-    public MainWindow(MoonStateMachine machine)
+    public MainWindow(MoonBotHost host)
     {
-        _machine = machine;
+        _host = host;
         InitializeComponent();
 
-        Moon.State = _machine.Current;
-        _machine.StateChanged += OnStateChanged;
+        Moon.State = _host.Machine.Current;
+        _host.Machine.StateChanged += OnStateChanged;
+        _host.SettingsChanged += (_, _) => _idleTimer!.Interval = SleepAfter;
 
-        _typeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(45) };
+        _typeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(32) };
         _typeTimer.Tick += OnTypeTick;
 
         _idleTimer = new DispatcherTimer { Interval = SleepAfter };
-        _idleTimer.Tick += (_, _) => _machine.TryChangeTo(MoonState.Sleeping);
+        _idleTimer.Tick += (_, _) => _host.Machine.TryChangeTo(MoonState.Sleeping);
 
         _hideBubbleTimer = new DispatcherTimer { Interval = BubbleLingers };
         _hideBubbleTimer.Tick += (_, _) =>
         {
             _hideBubbleTimer.Stop();
-            BubbleBorder.IsVisible = false;
+            BubbleHost.Opacity = 0;
         };
 
         PointerMoved += (_, e) =>
@@ -61,9 +60,17 @@ public partial class MainWindow : Window
         Opened += (_, _) =>
         {
             RestartIdleTimer();
-            Say($"Hola, {UserName}. ¿En qué puedo ayudarte hoy?");
+            var name = _host.Settings.UserName;
+            Say(string.IsNullOrWhiteSpace(name)
+                ? _host.Text["moon.greetingNoName"]
+                : _host.Text.Format("moon.greeting", name));
         };
     }
+
+    // Se asigna desde App: la luna abre el panel al hacer clic.
+    public PanelWindow? Panel { get; set; }
+
+    private TimeSpan SleepAfter => TimeSpan.FromMinutes(Math.Max(1, _host.Settings.SleepAfterMinutes));
 
     public void ToggleVisible()
     {
@@ -79,41 +86,42 @@ public partial class MainWindow : Window
     private void ApplyState(StateChangedEventArgs e)
     {
         Moon.State = e.To;
-        AutomationProperties.SetName(Moon, $"MoonBot: {Describe(e.To)}");
+        AutomationProperties.SetName(Moon, $"MoonBot: {e.To}");
+        var t = _host.Text;
 
         switch (e.To)
         {
             case MoonState.Sleeping:
-                BubbleBorder.IsVisible = false;
+                BubbleHost.Opacity = 0;
                 break;
             case MoonState.Idle when e.From == MoonState.Sleeping:
                 Moon.React();
-                Say("¡Ah! Me dormí contando cráteres.");
+                Say(t["moon.woke"]);
                 break;
             case MoonState.Idle when e.From == MoonState.Error:
-                Say("Listo, ya estoy bien.");
+                Say(t["moon.recovered"]);
+                break;
+            case MoonState.Idle when e.From == MoonState.Working:
+                Moon.React();
+                if (Panel is not { IsActive: true })
+                    Say(t["moon.done"]);
                 break;
             case MoonState.Thinking:
-                Say("Déjame pensar…");
+                Say(t["moon.thinking"]);
                 break;
             case MoonState.Working:
-                Say("Manos a la obra.");
+                Say(t["moon.working"]);
                 break;
             case MoonState.Error:
-                Say("Uy, algo salió mal.");
+                Say(t["moon.error"]);
                 break;
         }
-    }
 
-    private static string Describe(MoonState state) => state switch
-    {
-        MoonState.Idle => "lista",
-        MoonState.Sleeping => "durmiendo",
-        MoonState.Thinking => "pensando",
-        MoonState.Working => "trabajando",
-        MoonState.Error => "con un error",
-        _ => state.ToString()
-    };
+        // Si volvió a Idle sin decir nada nuevo, el globo anterior se desvanece a su tiempo.
+        if (BubbleHost.Opacity > 0)
+            HideBubbleLaterIfIdle();
+        RestartIdleTimer();
+    }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -132,17 +140,12 @@ public partial class MainWindow : Window
 
     private void OnMoonClicked()
     {
-        switch (_machine.Current)
-        {
-            case MoonState.Sleeping:
-            case MoonState.Error:
-                _machine.TryChangeTo(MoonState.Idle);
-                break;
-            case MoonState.Idle:
-                Moon.React();
-                Say("¡Hey! Aquí estoy.");
-                break;
-        }
+        if (_host.Machine.Current is MoonState.Sleeping or MoonState.Error)
+            _host.Machine.TryChangeTo(MoonState.Idle);
+        else
+            Moon.React();
+
+        Panel?.Open(PanelPage.Chat);
     }
 
     private void RestartIdleTimer()
@@ -166,11 +169,14 @@ public partial class MainWindow : Window
 
     public void Say(string text)
     {
+        if (string.IsNullOrEmpty(text))
+            return;
+
         _hideBubbleTimer.Stop();
         _fullText = text;
         _shown = 0;
         Bubble.Text = "";
-        BubbleBorder.IsVisible = true;
+        BubbleHost.Opacity = 1;
         Moon.IsTalking = true;
         _typeTimer.Start();
     }
@@ -184,7 +190,17 @@ public partial class MainWindow : Window
         {
             _typeTimer.Stop();
             Moon.IsTalking = false;
-            _hideBubbleTimer.Start();
+            HideBubbleLaterIfIdle();
         }
+    }
+
+    // Mientras piensa o escribe, el globo se queda: así siempre se ve que está ocupada.
+    private void HideBubbleLaterIfIdle()
+    {
+        if (_typeTimer.IsEnabled || _host.Machine.Current is MoonState.Thinking or MoonState.Working)
+            return;
+
+        _hideBubbleTimer.Stop();
+        _hideBubbleTimer.Start();
     }
 }

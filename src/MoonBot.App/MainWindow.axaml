@@ -3,9 +3,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:MoonBot.App"
-        mc:Ignorable="d" d:DesignWidth="260" d:DesignHeight="340"
+        mc:Ignorable="d" d:DesignWidth="280" d:DesignHeight="360"
         x:Class="MoonBot.App.MainWindow"
-        Width="260" Height="340" CanResize="False"
+        Width="280" Height="360" CanResize="False"
         WindowDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
@@ -16,15 +16,33 @@
     <!-- Ventana flotante: sin bordes, transparente, siempre encima,
          fuera de la barra de tareas y sin robar el foco al aparecer. -->
     <Grid RowDefinitions="Auto,*">
-        <Border x:Name="BubbleBorder" Grid.Row="0" IsVisible="False"
-                Margin="12,12,12,0" Padding="14,10" MinHeight="40"
-                CornerRadius="14" Background="#1B2140"
-                BoxShadow="0 4 14 0 #55000000"
-                HorizontalAlignment="Center">
-            <TextBlock x:Name="Bubble" Foreground="#E8E4D4" FontSize="14"
-                       TextWrapping="Wrap" MaxWidth="220" />
-        </Border>
-        <local:MoonView x:Name="Moon" Grid.Row="1"
+
+        <!-- Globo de diálogo: tarjeta con degradado + colita que apunta a la luna.
+             Aparece y desaparece con un fundido (transición de Opacity). -->
+        <StackPanel x:Name="BubbleHost" Grid.Row="0" Margin="14,14,14,0" HorizontalAlignment="Center"
+                    Opacity="0" IsHitTestVisible="False">
+            <StackPanel.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.22" />
+                </Transitions>
+            </StackPanel.Transitions>
+
+            <Border CornerRadius="16" Padding="15,11" BorderThickness="1" BorderBrush="#3A4688"
+                    BoxShadow="0 10 28 0 #70000000">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#27306A" Offset="0" />
+                        <GradientStop Color="#1A2150" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock x:Name="Bubble" Foreground="#F3F0E4" FontSize="13.5" LineHeight="19"
+                           TextWrapping="Wrap" MaxWidth="220" TextAlignment="Center" />
+            </Border>
+            <Path Data="M0,0 L18,0 L9,9 Z" Fill="#1A2150" Stroke="#3A4688" StrokeThickness="1"
+                  HorizontalAlignment="Center" Margin="0,-1.5,0,0" />
+        </StackPanel>
+
+        <local:MoonView x:Name="Moon" Grid.Row="1" Cursor="Hand"
                         AutomationProperties.Name="MoonBot" />
     </Grid>
 </Window>
