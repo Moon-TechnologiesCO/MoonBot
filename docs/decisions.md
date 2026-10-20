@@ -18,3 +18,22 @@
 **Alternativa descartada:** Lanzar `InvalidOperationException`. Obligaría a rodear cada cambio con `try/catch`, y cualquier descuido tumbaría MoonBot por un caso normal.
 
 **Riesgo aceptado:** Alguien puede ignorar el `false` y esconder un bug. Pendiente: registrar en el log cada transición rechazada cuando exista el logging.
+
+## 3. Framework de UI: Avalonia 12 (confirmado por spike)
+
+**Decisión:** Se queda Avalonia 12.
+
+**Por qué:** El spike del 20 de octubre de 2026 comprobó en Windows 11, con dos monitores a escalas distintas (125 % y 100 %):
+
+- Ventana sin bordes y transparente: se ve el escritorio detrás de la luna (`WindowDecorations="None"`, `TransparencyLevelHint="Transparent"`).
+- Siempre encima: Win32 reporta `WS_EX_TOPMOST`.
+- No roba el foco al abrirse (`ShowActivated="False"`): la ventana activa sigue siendo la misma antes y después.
+- Dibujo propio a unos 60 fps con `DrawingContext` (Skia), con recorte por geometría para la sombra de fase lunar.
+
+**Alternativa descartada:** Volver a WPF. Funcionaría, pero solo en Windows, y el spike no encontró ningún bloqueo que lo justifique.
+
+**Limitaciones conocidas (requieren Win32, futuro `MoonBot.Platform.Windows`):**
+
+- Probablemente los clics sobre las zonas transparentes no atraviesan la ventana hacia la app de atrás (sin verificar todavía).
+- Avalonia solo conoce la posición del cursor dentro de su ventana. Para que los ojos sigan al cursor por toda la pantalla hace falta `GetCursorPos`.
+- `Position` hay que asignarlo antes de mostrar la ventana. En `Opened` se ignora y Windows la coloca en el monitor del cursor.
