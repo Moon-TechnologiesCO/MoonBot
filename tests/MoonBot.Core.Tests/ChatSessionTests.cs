@@ -32,14 +32,14 @@ public class ChatSessionTests
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await Task.Yield();
-            throw new AiProviderException("server is down");
+            throw new AiProviderException(AiErrorKind.Connection, "server is down");
 #pragma warning disable CS0162 // un iterador necesita al menos un yield
             yield break;
 #pragma warning restore CS0162
         }
 
         public Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken)
-            => throw new AiProviderException("server is down");
+            => throw new AiProviderException(AiErrorKind.Connection, "server is down");
     }
 
     [Fact]

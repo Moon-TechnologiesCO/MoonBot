@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Adaptadores hacia el mundo exterior: HTTP, disco. Sin paquetes de terceros:
+       HttpClient y System.Text.Json vienen con .NET. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MoonBot.Core\MoonBot.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -11,6 +11,12 @@ public interface IAiProvider
     Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken);
 }
 
-// Error de un proveedor con un mensaje apto para mostrar al usuario (sin secretos).
-public sealed class AiProviderException(string message, Exception? inner = null)
-    : Exception(message, inner);
+public enum AiErrorKind { Connection, Status, InsecureKey, Timeout }
+
+// Error de un proveedor. Lleva el tipo (para que la UI lo traduzca) y un detalle técnico sin secretos.
+public sealed class AiProviderException(AiErrorKind kind, string detail, Exception? inner = null)
+    : Exception(detail, inner)
+{
+    public AiErrorKind Kind { get; } = kind;
+    public string Detail { get; } = detail;
+}

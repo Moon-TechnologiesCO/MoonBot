@@ -2,8 +2,12 @@
   <Folder Name="/src/">
     <Project Path="src/MoonBot.App/MoonBot.App.csproj" />
     <Project Path="src/MoonBot.Core/MoonBot.Core.csproj" />
+    <Project Path="src/MoonBot.Infrastructure/MoonBot.Infrastructure.csproj" />
+    <Project Path="src/MoonBot.Platform.Windows/MoonBot.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MoonBot.Core.Tests/MoonBot.Core.Tests.csproj" />
+    <Project Path="tests/MoonBot.Infrastructure.Tests/MoonBot.Infrastructure.Tests.csproj" />
+    <Project Path="tests/MoonBot.Platform.Windows.Tests/MoonBot.Platform.Windows.Tests.csproj" />
   </Folder>
 </Solution>

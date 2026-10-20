@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Código que solo funciona en Windows (Win32). Las clases llevan [SupportedOSPlatform("windows")]
+       y el compilador avisa si alguien las usa sin comprobar el sistema operativo. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MoonBot.Core\MoonBot.Core.csproj" />
+  </ItemGroup>
+
+</Project>
