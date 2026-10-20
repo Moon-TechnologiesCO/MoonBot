@@ -1,16 +1,21 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using MoonBot.Core;
+using MoonBot.Core.Placement;
+using PlacementMode = MoonBot.Core.Placement.PlacementMode;
 
 namespace MoonBot.App;
 
-// La luna flotante. Muestra el estado y frases cortas; un clic abre el panel.
+// La luna flotante. Muestra el estado y frases cortas; un clic abre el chat.
 public partial class MainWindow : Window
 {
+    private const int EdgeMargin = 8;
     private static readonly TimeSpan BubbleLingers = TimeSpan.FromSeconds(4);
 
     private readonly MoonBotHost _host;
@@ -30,9 +35,14 @@ public partial class MainWindow : Window
 
         Moon.State = _host.Machine.Current;
         _host.Machine.StateChanged += OnStateChanged;
-        _host.SettingsChanged += (_, _) => _idleTimer!.Interval = SleepAfter;
+        _host.SettingsChanged += (_, _) =>
+        {
+            _idleTimer!.Interval = SleepAfter;
+            ApplyAppearance();
+            Place();
+        };
 
-        _typeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(32) };
+        _typeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
         _typeTimer.Tick += OnTypeTick;
 
         _idleTimer = new DispatcherTimer { Interval = SleepAfter };
@@ -53,9 +63,27 @@ public partial class MainWindow : Window
         PointerExited += (_, _) => Moon.LookTarget = null;
         PointerPressed += OnPointerPressed;
 
+        // Soltar archivos sobre la luna: se los pasa al chat.
+        DragDrop.SetAllowDrop(this, true);
+        AddHandler(DragDrop.DragOverEvent, (_, _) => Moon.React());
+        AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            var files = e.DataTransfer.TryGetFiles()?.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
+            if (files is { Count: > 0 } && Chat is not null)
+            {
+                Chat.Attach(files);
+                Chat.ShowNextTo(this);
+            }
+        });
+
+        ApplyAppearance();
+
         // Se coloca antes de mostrarse: en Opened la ventana nativa ya existe
         // y Windows ya la puso donde quiso.
-        PlaceInCorner();
+        Place();
+
+        // Si cambian las pantallas (se conecta un monitor, cambia la barra de tareas), se recoloca.
+        Screens.Changed += (_, _) => Dispatcher.UIThread.Post(Place);
 
         Opened += (_, _) =>
         {
@@ -67,8 +95,8 @@ public partial class MainWindow : Window
         };
     }
 
-    // Se asigna desde App: la luna abre el panel al hacer clic.
-    public PanelWindow? Panel { get; set; }
+    // Se asigna desde App: la luna abre y cierra el chat al hacer clic.
+    public ChatPopup? Chat { get; set; }
 
     private TimeSpan SleepAfter => TimeSpan.FromMinutes(Math.Max(1, _host.Settings.SleepAfterMinutes));
 
@@ -77,6 +105,50 @@ public partial class MainWindow : Window
         if (IsVisible) Hide();
         else Show();
     }
+
+    private void ApplyAppearance()
+    {
+        Moon.Skin = MoonSkins.Get(_host.Settings.Skin);
+        Moon.Accessory = MoonAccessories.Get(_host.Settings.Accessory);
+    }
+
+    // ---------- Posición ----------
+
+    // La pantalla mide en píxeles físicos y la ventana en píxeles lógicos: se multiplica por la escala.
+    private void Place()
+    {
+        var settings = _host.Settings;
+        var screen = (settings.Placement == PlacementMode.Custom && settings.CustomX is { } cx && settings.CustomY is { } cy
+                         ? Screens.ScreenFromPoint(new PixelPoint(cx, cy))
+                         : null)
+                     ?? Screens.Primary;
+        if (screen is null) return;
+
+        var bounds = new PixelBox(screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height);
+        var work = new PixelBox(screen.WorkingArea.X, screen.WorkingArea.Y, screen.WorkingArea.Width, screen.WorkingArea.Height);
+        var w = (int)(Width * screen.Scaling);
+        var h = (int)(Height * screen.Scaling);
+
+        var (x, y) = settings.Placement == PlacementMode.Custom && settings.CustomX is { } savedX && settings.CustomY is { } savedY
+            ? MoonPlacement.Clamp(savedX, savedY, w, h, work)
+            : MoonPlacement.Compute(settings.Placement, bounds, work, w, h, EdgeMargin);
+
+        Position = new PixelPoint(x, y);
+        SetBubbleBelow(settings.Placement != PlacementMode.Custom && MoonPlacement.BubbleBelow(settings.Placement, bounds, work));
+    }
+
+    // Si la luna vive arriba, el globo sale hacia abajo y la colita apunta hacia arriba.
+    private void SetBubbleBelow(bool below)
+    {
+        Grid.SetRow(BubbleHost, below ? 1 : 0);
+        Grid.SetRow(Moon, below ? 0 : 1);
+        Layout.RowDefinitions = below ? new RowDefinitions("*,Auto") : new RowDefinitions("Auto,*");
+        BubbleHost.Margin = below ? new Thickness(12, 0, 12, 12) : new Thickness(12, 12, 12, 0);
+        TailUp.IsVisible = below;
+        TailDown.IsVisible = !below;
+    }
+
+    // ---------- Estados ----------
 
     // El evento podría llegar desde otro hilo (por ejemplo, una respuesta de la IA).
     // La UI solo se toca desde su propio hilo, así que se encola en el Dispatcher.
@@ -88,6 +160,7 @@ public partial class MainWindow : Window
         Moon.State = e.To;
         AutomationProperties.SetName(Moon, $"MoonBot: {e.To}");
         var t = _host.Text;
+        var chatOpen = Chat is { IsVisible: true };
 
         switch (e.To)
         {
@@ -103,13 +176,13 @@ public partial class MainWindow : Window
                 break;
             case MoonState.Idle when e.From == MoonState.Working:
                 Moon.React();
-                if (Panel is not { IsActive: true })
+                if (!chatOpen)
                     Say(t["moon.done"]);
                 break;
-            case MoonState.Thinking:
+            case MoonState.Thinking when !chatOpen:
                 Say(t["moon.thinking"]);
                 break;
-            case MoonState.Working:
+            case MoonState.Working when !chatOpen:
                 Say(t["moon.working"]);
                 break;
             case MoonState.Error:
@@ -123,17 +196,21 @@ public partial class MainWindow : Window
         RestartIdleTimer();
     }
 
+    // ---------- Ratón ----------
+
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
         // En Windows, BeginMoveDrag espera hasta soltar el botón.
-        // Si la ventana no se movió, lo tratamos como un clic.
+        // Si la ventana no se movió, fue un clic; si se movió, se recuerda el sitio.
         var before = Position;
         BeginMoveDrag(e);
         if (Position == before)
             OnMoonClicked();
+        else
+            _host.Update(s => s with { Placement = PlacementMode.Custom, CustomX = Position.X, CustomY = Position.Y });
 
         RestartIdleTimer();
     }
@@ -145,7 +222,8 @@ public partial class MainWindow : Window
         else
             Moon.React();
 
-        Panel?.Open(PanelPage.Chat);
+        BubbleHost.Opacity = 0;
+        Chat?.Toggle(this);
     }
 
     private void RestartIdleTimer()
@@ -154,18 +232,7 @@ public partial class MainWindow : Window
         _idleTimer.Start();
     }
 
-    // Esquina inferior derecha del área útil (sin la barra de tareas).
-    // La pantalla mide en píxeles físicos y la ventana en píxeles lógicos: se multiplica por la escala.
-    private void PlaceInCorner()
-    {
-        var screen = Screens.Primary;
-        if (screen is null) return;
-
-        var area = screen.WorkingArea;
-        var w = (int)(Width * screen.Scaling);
-        var h = (int)(Height * screen.Scaling);
-        Position = new PixelPoint(area.Right - w - 16, area.Bottom - h - 16);
-    }
+    // ---------- Globo ----------
 
     public void Say(string text)
     {

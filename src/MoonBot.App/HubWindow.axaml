@@ -1,0 +1,182 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:MoonBot.App"
+        x:Class="MoonBot.App.HubWindow"
+        Width="980" Height="680" MinWidth="780" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource NightGradient}"
+        Foreground="{StaticResource TextBrush}"
+        Title="MoonBot">
+
+    <Grid ColumnDefinitions="248,*">
+
+        <!-- ===== Barra lateral ===== -->
+        <Border Background="#22000000" BorderBrush="#18FFFFFF" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="14,20,14,16">
+                <StackPanel Orientation="Horizontal" Spacing="10" Margin="4,0,0,0">
+                    <local:MoonView x:Name="Logo" Width="58" Height="58" IsHitTestVisible="False" />
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="MoonBot" FontSize="19" FontWeight="SemiBold" />
+                        <TextBlock x:Name="Tagline" Classes="muted" FontSize="11.5" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,26,0,0" Spacing="4">
+                    <Button x:Name="NavGeneral" Classes="nav" />
+                    <Button x:Name="NavAi" Classes="nav" />
+                    <Button x:Name="NavAppearance" Classes="nav" />
+                    <Button x:Name="NavFiles" Classes="nav" />
+                    <Button x:Name="NavAbout" Classes="nav" />
+                </StackPanel>
+
+                <Button x:Name="OpenChatButton" Grid.Row="3" Classes="primary" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- ===== General ===== -->
+        <ScrollViewer x:Name="GeneralPage" Grid.Column="1">
+            <StackPanel Margin="36,26,36,30" MaxWidth="640" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="GeneralTitle" Classes="h1" />
+                <Border Classes="glass">
+                    <StackPanel>
+                        <TextBlock x:Name="LanguageLabel" Classes="label" Margin="0,0,0,6" />
+                        <ComboBox x:Name="LanguageBox" MinWidth="280" />
+                        <TextBlock x:Name="NameLabel" Classes="label" />
+                        <TextBox x:Name="NameBox" Width="360" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="SleepLabel" Classes="label" />
+                        <NumericUpDown x:Name="SleepBox" Minimum="1" Maximum="120" Increment="1"
+                                       FormatString="0" Width="160" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <Button x:Name="SaveGeneralButton" Classes="primary" />
+                    <TextBlock x:Name="GeneralStatus" VerticalAlignment="Center" FontSize="13" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== IA ===== -->
+        <ScrollViewer x:Name="AiPage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="36,26,36,30" MaxWidth="640" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="AiTitle" Classes="h1" />
+                <Border Classes="glass">
+                    <StackPanel>
+                        <TextBlock x:Name="ProviderLabel" Classes="label" Margin="0,0,0,6" />
+                        <ComboBox x:Name="ProviderBox" MinWidth="380" />
+                        <TextBlock x:Name="UrlLabel" Classes="label" />
+                        <TextBox x:Name="UrlBox" Width="440" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="ModelLabel" Classes="label" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoCompleteBox x:Name="ModelBox" Width="320" MinimumPrefixLength="0" FilterMode="Contains" />
+                            <Button x:Name="RefreshModelsButton" Classes="ghost" />
+                        </StackPanel>
+                        <TextBlock x:Name="ModelHint" Classes="muted" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap" />
+
+                        <StackPanel x:Name="KeySection">
+                            <TextBlock x:Name="KeyLabel" Classes="label" />
+                            <TextBox x:Name="KeyBox" PasswordChar="•" Width="440" HorizontalAlignment="Left" />
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                                <TextBlock x:Name="KeyStatus" Classes="muted" FontSize="12.5" VerticalAlignment="Center" />
+                                <Button x:Name="RemoveKeyButton" Classes="ghost" Padding="10,4" FontSize="12" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                            <Button x:Name="TestButton" Classes="ghost" />
+                            <TextBlock x:Name="TestResult" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="14">
+                    <Button x:Name="SaveAiButton" Classes="primary" />
+                    <TextBlock x:Name="AiStatus" VerticalAlignment="Center" FontSize="13" TextWrapping="Wrap" MaxWidth="460" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Apariencia ===== -->
+        <ScrollViewer x:Name="AppearancePage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="36,26,36,30" Spacing="16">
+                <TextBlock x:Name="AppearanceTitle" Classes="h1" />
+
+                <Border Classes="glass">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <!-- Vista previa grande -->
+                        <Border Width="190" Height="210" CornerRadius="18" Background="#26000000" Margin="0,0,20,0">
+                            <local:MoonView x:Name="Preview" Margin="6" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="SkinLabel" Classes="h2" />
+                            <WrapPanel x:Name="SkinTiles" Margin="0,6,0,0" />
+                            <TextBlock x:Name="AccessoryLabel" Classes="h2" Margin="0,14,0,4" />
+                            <WrapPanel x:Name="AccessoryTiles" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Classes="glass">
+                    <StackPanel>
+                        <TextBlock x:Name="PlacementLabel" Classes="h2" />
+                        <ComboBox x:Name="PlacementBox" MinWidth="380" Margin="0,6,0,0" />
+                        <Button x:Name="ResetPlacementButton" Classes="ghost" Margin="0,10,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Archivos y permisos ===== -->
+        <ScrollViewer x:Name="FilesPage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="36,26,36,30" MaxWidth="660" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="FilesTitle" Classes="h1" />
+                <Border Classes="glass">
+                    <StackPanel Spacing="8">
+                        <ToggleSwitch x:Name="ToolsSwitch" />
+                        <TextBlock x:Name="FilesHelp" TextWrapping="Wrap" LineHeight="20" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="glass">
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="FoldersLabel" Classes="h2" />
+                        <ItemsControl x:Name="FoldersList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding StringFormat='📁  {0}'}" FontSize="12.5" Margin="0,2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock x:Name="CloudNote" Classes="muted" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
+                        <TextBlock x:Name="AuditNote" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Acerca de ===== -->
+        <ScrollViewer x:Name="AboutPage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="36,26,36,30" MaxWidth="660" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="AboutTitle" Classes="h1" />
+                <Border Classes="glass">
+                    <StackPanel Orientation="Horizontal" Spacing="18">
+                        <local:MoonView x:Name="AboutMoon" Width="110" Height="110" IsHitTestVisible="False" />
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="MoonBot" FontSize="28" FontWeight="SemiBold" />
+                            <TextBlock x:Name="AboutTagline" Classes="muted" />
+                            <TextBlock x:Name="AboutVersion" Classes="muted" FontSize="12.5" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Classes="glass">
+                    <StackPanel Spacing="6">
+                        <TextBlock x:Name="PrivacyTitle" Classes="h2" />
+                        <TextBlock x:Name="PrivacyText" TextWrapping="Wrap" LineHeight="21" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button x:Name="OpenLogsButton" Classes="ghost" />
+                    <Button x:Name="OpenDataButton" Classes="ghost" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

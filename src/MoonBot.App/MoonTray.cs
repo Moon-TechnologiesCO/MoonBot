@@ -11,27 +11,28 @@ namespace MoonBot.App;
 // Ícono de la bandeja del sistema con su menú. El menú se reconstruye al cambiar de idioma.
 public static class MoonTray
 {
-    public static TrayIcon Create(MoonBotHost host, MainWindow moon, PanelWindow panel, Action quit)
+    public static TrayIcon Create(MoonBotHost host, MainWindow moon, ChatPopup chat, HubWindow hub, Action quit)
     {
         var tray = new TrayIcon
         {
             Icon = CreateIcon(),
             ToolTipText = "MoonBot",
-            Menu = BuildMenu(host, moon, panel, quit)
+            Menu = BuildMenu(host, moon, chat, hub, quit)
         };
-        tray.Clicked += (_, _) => panel.Open(PanelPage.Chat);
-        host.SettingsChanged += (_, _) => tray.Menu = BuildMenu(host, moon, panel, quit);
+        tray.Clicked += (_, _) => chat.ShowNextTo(moon);
+        host.SettingsChanged += (_, _) => tray.Menu = BuildMenu(host, moon, chat, hub, quit);
         return tray;
     }
 
-    private static NativeMenu BuildMenu(MoonBotHost host, MainWindow moon, PanelWindow panel, Action quit)
+    private static NativeMenu BuildMenu(MoonBotHost host, MainWindow moon, ChatPopup chat, HubWindow hub, Action quit)
     {
         var t = host.Text;
         var machine = host.Machine;
         var menu = new NativeMenu();
 
-        menu.Items.Add(Item(t["tray.open"], () => panel.Open(PanelPage.Chat)));
-        menu.Items.Add(Item(t["nav.settings"], () => panel.Open(PanelPage.Settings)));
+        menu.Items.Add(Item(t["tray.chat"], () => chat.ShowNextTo(moon)));
+        menu.Items.Add(Item(t["nav.settings"], () => hub.Open(HubPage.General)));
+        menu.Items.Add(Item(t["nav.appearance"], () => hub.Open(HubPage.Appearance)));
         menu.Items.Add(Item(t["tray.toggleMoon"], moon.ToggleVisible));
         menu.Items.Add(new NativeMenuItemSeparator());
         menu.Items.Add(Item(t["tray.sleep"], () => machine.TryChangeTo(MoonState.Sleeping)));

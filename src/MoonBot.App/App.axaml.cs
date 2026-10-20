@@ -20,20 +20,25 @@ public partial class App : Application
             var host = new MoonBotHost();
             var icon = MoonTray.CreateIcon();
             var moon = new MainWindow(host) { Icon = icon };
-            var panel = new PanelWindow(host) { Icon = icon };
-            moon.Panel = panel;
+            var chat = new ChatPopup(host) { Icon = icon };
+            var hub = new HubWindow(host) { Icon = icon };
 
-            // La luna no tiene botón de cerrar y el panel solo se oculta: se sale desde la bandeja.
+            moon.Chat = chat;
+            chat.MoonSays = moon.Say;
+            chat.HubRequested += (_, _) => hub.Open(HubPage.General);
+            hub.ChatRequested += (_, _) => chat.ShowNextTo(moon);
+
+            // La luna no tiene botón de cerrar y las demás ventanas solo se ocultan: se sale desde la bandeja.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.MainWindow = moon;
             desktop.Exit += (_, _) => host.Dispose();
 
-            var tray = MoonTray.Create(host, moon, panel, () => desktop.Shutdown());
+            var tray = MoonTray.Create(host, moon, chat, hub, () => desktop.Shutdown());
             TrayIcon.SetIcons(this, [tray]);
 
-            // Primera vez: se abre el panel para que el usuario vea cómo empezar.
+            // Primera vez: se abre el chat para que el usuario vea cómo empezar.
             if (host.IsFirstRun)
-                moon.Opened += (_, _) => panel.Open(PanelPage.Chat);
+                moon.Opened += (_, _) => chat.ShowNextTo(moon);
         }
 
         base.OnFrameworkInitializationCompleted();

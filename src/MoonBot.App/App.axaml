@@ -3,34 +3,47 @@
              x:Class="MoonBot.App.App"
              RequestedThemeVariant="Dark">
 
-    <!-- Paleta "noche lunar" de Moon Technologies. Un solo lugar para los colores. -->
+    <!-- Paleta "Noche lunar" de Moon Technologies: índigo -> violeta, vidrio, lila y luz de luna.
+         Un solo lugar para los colores: cambiar el estilo es cambiar este archivo. -->
     <Application.Resources>
-        <Color x:Key="SystemAccentColor">#8FB3FF</Color>
-        <Color x:Key="SystemAccentColorDark1">#7A9EEA</Color>
-        <Color x:Key="SystemAccentColorDark2">#6488D4</Color>
-        <Color x:Key="SystemAccentColorDark3">#4E72BE</Color>
-        <Color x:Key="SystemAccentColorLight1">#A6C3FF</Color>
-        <Color x:Key="SystemAccentColorLight2">#BDD3FF</Color>
-        <Color x:Key="SystemAccentColorLight3">#D4E2FF</Color>
+        <Color x:Key="SystemAccentColor">#B6A4FF</Color>
+        <Color x:Key="SystemAccentColorDark1">#A08CF5</Color>
+        <Color x:Key="SystemAccentColorDark2">#8A74EB</Color>
+        <Color x:Key="SystemAccentColorDark3">#745CE0</Color>
+        <Color x:Key="SystemAccentColorLight1">#C7B9FF</Color>
+        <Color x:Key="SystemAccentColorLight2">#D7CDFF</Color>
+        <Color x:Key="SystemAccentColorLight3">#E7E1FF</Color>
 
-        <SolidColorBrush x:Key="NightBrush" Color="#0B1026" />
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#10173A" />
-        <SolidColorBrush x:Key="CardBrush" Color="#161E46" />
-        <SolidColorBrush x:Key="CardBorderBrush" Color="#252E62" />
-        <SolidColorBrush x:Key="TextBrush" Color="#ECE8DA" />
-        <SolidColorBrush x:Key="MutedBrush" Color="#9AA3C7" />
-        <SolidColorBrush x:Key="MoonlightBrush" Color="#F2D98D" />
-        <SolidColorBrush x:Key="MoonlightHoverBrush" Color="#F7E5AE" />
-        <SolidColorBrush x:Key="InkBrush" Color="#1B2140" />
-        <SolidColorBrush x:Key="NavSelectedBrush" Color="#222B5C" />
-        <SolidColorBrush x:Key="NavHoverBrush" Color="#1A2250" />
+        <LinearGradientBrush x:Key="NightGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#121538" Offset="0" />
+            <GradientStop Color="#1B1446" Offset="0.6" />
+            <GradientStop Color="#24123F" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="UserBubbleGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#9483FF" Offset="0" />
+            <GradientStop Color="#6C58E6" Offset="1" />
+        </LinearGradientBrush>
+
+        <SolidColorBrush x:Key="NightBrush" Color="#121538" />
+        <SolidColorBrush x:Key="GlassBrush" Color="#14FFFFFF" />
+        <SolidColorBrush x:Key="GlassStrongBrush" Color="#1FFFFFFF" />
+        <SolidColorBrush x:Key="GlassBorderBrush" Color="#24FFFFFF" />
+        <SolidColorBrush x:Key="TextBrush" Color="#F3F1FF" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#A9A6CF" />
+        <SolidColorBrush x:Key="LilacBrush" Color="#B6A4FF" />
+        <SolidColorBrush x:Key="MoonlightBrush" Color="#F6E7B0" />
+        <SolidColorBrush x:Key="MoonlightHoverBrush" Color="#FFF1C9" />
+        <SolidColorBrush x:Key="InkBrush" Color="#1B1640" />
+        <SolidColorBrush x:Key="WarnBrush" Color="#F5C46B" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#FF8A8A" />
+        <SolidColorBrush x:Key="OkBrush" Color="#7FE0A0" />
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
 
         <Style Selector="TextBlock.h1">
-            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontSize" Value="24" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         </Style>
@@ -38,7 +51,7 @@
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-            <Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Margin" Value="0,0,0,4" />
         </Style>
         <Style Selector="TextBlock.muted">
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
@@ -46,19 +59,20 @@
         <Style Selector="TextBlock.label">
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
             <Setter Property="FontSize" Value="12.5" />
-            <Setter Property="Margin" Value="0,10,0,6" />
+            <Setter Property="Margin" Value="0,12,0,6" />
         </Style>
 
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="{StaticResource CardBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <!-- Tarjeta de vidrio -->
+        <Style Selector="Border.glass">
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="16" />
-            <Setter Property="Padding" Value="22,18" />
+            <Setter Property="CornerRadius" Value="18" />
+            <Setter Property="Padding" Value="20,16" />
         </Style>
 
         <Style Selector="TextBox, ComboBox, AutoCompleteBox, NumericUpDown">
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
         </Style>
 
         <!-- Botón principal: luz de luna -->
@@ -66,7 +80,7 @@
             <Setter Property="Background" Value="{StaticResource MoonlightBrush}" />
             <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="18,9" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -74,53 +88,106 @@
             <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
         </Style>
         <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#E3C772" />
+            <Setter Property="Background" Value="#E9D58E" />
             <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
         </Style>
 
-        <!-- Botón discreto -->
+        <!-- Botón de vidrio -->
         <Style Selector="Button.ghost">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource GlassStrongBrush}" />
+            <Setter Property="BorderBrush" Value="#40FFFFFF" />
         </Style>
 
-        <!-- Navegación lateral -->
+        <!-- Botón de icono, sin fondo -->
+        <Style Selector="Button.icon">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        </Style>
+        <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource GlassStrongBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+
+        <!-- Chips de acción rápida -->
+        <Style Selector="Button.chip">
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="Button.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#33B6A4FF" />
+            <Setter Property="BorderBrush" Value="#80B6A4FF" />
+        </Style>
+
+        <!-- Tarjetas de acción (estado vacío) -->
+        <Style Selector="Button.action">
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="Button.action:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#26B6A4FF" />
+            <Setter Property="BorderBrush" Value="#66B6A4FF" />
+        </Style>
+
+        <!-- Navegación del Hub -->
         <Style Selector="Button.nav">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="CornerRadius" Value="12" />
             <Setter Property="Padding" Value="12,10" />
             <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
         </Style>
         <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource NavHoverBrush}" />
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         </Style>
         <Style Selector="Button.nav.selected">
-            <Setter Property="Background" Value="{StaticResource NavSelectedBrush}" />
+            <Setter Property="Background" Value="#2EB6A4FF" />
             <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         </Style>
         <Style Selector="Button.nav.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource NavSelectedBrush}" />
+            <Setter Property="Background" Value="#2EB6A4FF" />
         </Style>
 
-        <!-- Sugerencias en el chat vacío -->
-        <Style Selector="Button.suggestion">
-            <Setter Property="Background" Value="{StaticResource CardBrush}" />
-            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Padding" Value="14,10" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <!-- Opción seleccionable (skins / accesorios) -->
+        <Style Selector="Button.tile">
+            <Setter Property="Background" Value="{StaticResource GlassBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="6" />
         </Style>
-        <Style Selector="Button.suggestion:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource NavSelectedBrush}" />
-            <Setter Property="BorderBrush" Value="#3A4588" />
+        <Style Selector="Button.tile:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource GlassStrongBrush}" />
+        </Style>
+        <Style Selector="Button.tile.selected">
+            <Setter Property="BorderBrush" Value="{StaticResource LilacBrush}" />
+            <Setter Property="Background" Value="#26B6A4FF" />
+        </Style>
+        <Style Selector="Button.tile.selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{StaticResource LilacBrush}" />
         </Style>
 
         <!-- Caja de texto sin marco (dentro del compositor del chat) -->
