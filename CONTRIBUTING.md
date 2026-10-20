@@ -17,6 +17,10 @@ Thanks for your interest! MoonBot is also a learning project, so clear explanati
 - A new dependency needs a license review in [docs/dependencies.md](docs/dependencies.md).
 - Important decisions go in [docs/decisions.md](docs/decisions.md): what, why, and the alternative we rejected.
 
+## License of contributions
+
+MoonBot is licensed under Apache-2.0. By opening a pull request you agree that your contribution is licensed under the same terms (Apache-2.0, section 5). Sign your commits with `git commit -s` to certify you have the right to submit them ([Developer Certificate of Origin](https://developercertificate.org/)).
+
 ## Translations
 
 UI text lives in `src/MoonBot.Core/Localization/strings-<code>.json`. English is the reference. A test fails if a language is missing a key or changes a `{0}` placeholder. Native-speaker reviews are very welcome.

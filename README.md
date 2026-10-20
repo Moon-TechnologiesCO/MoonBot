@@ -59,6 +59,11 @@ Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## License
+
+Code: [Apache License 2.0](LICENSE) — free to use, modify and share, including commercially.
+The **MoonBot** and **Moon Technologies** names and the MoonBot character are trademarks of Moon Technologies and are not covered by the license (see [NOTICE](NOTICE)).
+
 ---
 
 ## Español
