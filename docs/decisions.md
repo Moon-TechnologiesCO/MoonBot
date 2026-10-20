@@ -64,3 +64,23 @@
 **Por qué no `.resx`:** el JSON lo puede editar un traductor sin Visual Studio, y el test detecta frases olvidadas.
 
 **Riesgo aceptado:** las traducciones las escribió el asistente. Antes de anunciar un idioma, debe revisarlo un hablante nativo.
+
+
+## 7. Agente con herramientas de archivos, permisos y sin borrar
+
+**Decisión:** el modelo puede buscar, listar, crear carpetas, renombrar y mover dentro de las carpetas personales del usuario (`FileSandbox`). Todo pasa por `ToolRouter`: falla cerrado, pide permiso para cualquier cambio, tiene un límite de tiempo y deja auditoría. No existe herramienta de borrar.
+
+**Por qué:** la frase "nunca permitas que el modelo ejecute comandos arbitrarios" del plan inicial. Un modelo pequeño se equivoca; sin herramienta de borrar, el peor caso es un archivo movido, que se puede deshacer.
+
+**Riesgo aceptado:** los modelos locales de 4B no siempre eligen la herramienta (en el test real del 20 de octubre de 2026, `nemotron-3-nano:4b` falló una de dos veces al crear una carpeta). Por eso existe `/find`, que no depende de la IA.
+
+
+## 8. Dictado con Ctrl derecho, sin hook de teclado y con Whisper local
+
+**Decisión:** se consulta cada 30 ms el estado de una sola tecla (`GetAsyncKeyState`) en lugar de instalar un hook global; el audio se transcribe en el PC con whisper.cpp; el texto se escribe con `SendInput` Unicode.
+
+**Por qué:** un hook de teclado ve todas las pulsaciones, incluidas contraseñas; consultar una tecla no. La voz es un dato personal: no debe salir del equipo. `SendInput` no toca el portapapeles del usuario.
+
+**Alternativas descartadas:** el reconocimiento de voz de Windows (`Windows.Media.SpeechRecognition`) para dictado usa el servicio en línea de Microsoft; System.Speech (SAPI) es local pero con muy baja calidad.
+
+**Límites conocidos:** Windows no permite escribir en ventanas abiertas como administrador (UIPI); si el usuario cambia de ventana mientras se transcribe, el texto va al chat de MoonBot en vez de a la ventana nueva.

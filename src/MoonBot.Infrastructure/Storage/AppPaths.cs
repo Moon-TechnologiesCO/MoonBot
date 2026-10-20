@@ -12,4 +12,8 @@ public static class AppPaths
 
     public static string LogsDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoonBot", "logs");
+
+    // Modelos de voz (cientos de MB): se quedan en esta máquina, no viajan con el perfil.
+    public static string ModelsDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoonBot", "models");
 }

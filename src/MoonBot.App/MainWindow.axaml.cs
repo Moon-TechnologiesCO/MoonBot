@@ -232,6 +232,28 @@ public partial class MainWindow : Window
         _idleTimer.Start();
     }
 
+    // ---------- Dictado ----------
+
+    public void SetListening(bool listening)
+    {
+        Moon.IsListening = listening;
+        Moon.ListenLevel = 0;
+        if (listening)
+            Moon.React();
+    }
+
+    public double ListenLevel
+    {
+        set => Moon.ListenLevel = value;
+    }
+
+    public void HideBubble()
+    {
+        _typeTimer.Stop();
+        Moon.IsTalking = false;
+        BubbleHost.Opacity = 0;
+    }
+
     // ---------- Globo ----------
 
     public void Say(string text)

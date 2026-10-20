@@ -36,6 +36,17 @@ public partial class App : Application
             var tray = MoonTray.Create(host, moon, chat, hub, () => desktop.Shutdown());
             TrayIcon.SetIcons(this, [tray]);
 
+            // Dictado con Ctrl derecho: usa APIs de Windows (teclado, micrófono, escritura).
+            if (System.OperatingSystem.IsWindows())
+            {
+                var voice = new VoiceController(host, moon, chat, hub);
+                desktop.Exit += (_, _) =>
+                {
+                    if (System.OperatingSystem.IsWindows())
+                        voice.Dispose();
+                };
+            }
+
             // Primera vez: se abre el chat para que el usuario vea cómo empezar.
             if (host.IsFirstRun)
                 moon.Opened += (_, _) => chat.ShowNextTo(moon);

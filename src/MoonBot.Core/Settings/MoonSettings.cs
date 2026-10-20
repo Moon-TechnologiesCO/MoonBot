@@ -26,6 +26,18 @@ public sealed record MoonSettings
 
     // Herramientas de archivos (buscar, crear carpeta, renombrar, mover). Los cambios piden permiso siempre.
     public bool ToolsEnabled { get; init; } = true;
+
+    // Dictado: mantener Ctrl derecho, hablar, soltar.
+    public bool VoiceEnabled { get; init; } = true;
+    public string VoiceModel { get; init; } = "base";
+    public string VoiceLanguage { get; init; } = "auto";
+    public VoiceTarget VoiceTarget { get; init; } = VoiceTarget.TypeAtCursor;
+}
+
+public enum VoiceTarget
+{
+    TypeAtCursor, // escribe donde esté el cursor, en cualquier app
+    Chat          // lo manda al chat de MoonBot
 }
 
 public interface ISettingsStore

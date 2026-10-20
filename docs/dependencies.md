@@ -15,6 +15,16 @@ Revisión del 20 de octubre de 2026. Fuente: el campo `<license>` del `.nuspec` 
 | SkiaSharp (transitiva) | 3.119.4 | MIT | Sí | Igual |
 | HarfBuzzSharp (transitiva) | 8.3.1.3 | MIT | Sí | Igual |
 | MicroCom.Runtime (transitiva) | 0.11.6 | MIT | Sí | Igual |
+| Whisper.net | 1.9.1 | MIT (archivo LICENSE, © sandrohanea) | Sí | Igual |
+| Whisper.net.Runtime (whisper.cpp nativo) | 1.9.1 | MIT | Sí | Igual |
+| Microsoft.Extensions.AI.Abstractions (transitiva) | 10.2.0 | MIT (Microsoft) | Sí | Igual |
+
+## Se descargan aparte (no van en el instalador)
+
+| Archivo | Tamaño | Licencia | Verificación |
+| --- | --- | --- | --- |
+| ggml-base.bin (Whisper base) | 147 951 465 bytes | MIT (repo ggerganov/whisper.cpp en Hugging Face) | SHA-256 `60ed5bc3…a2efe` fijado en el código |
+| ggml-small.bin (Whisper small) | 487 601 967 bytes | MIT | SHA-256 `1be3a9b2…a987b` fijado en el código |
 
 **Nota sobre Inter:** el paquete declara MIT, pero la tipografía Inter se publica originalmente bajo la SIL Open Font License 1.1. La OFL permite uso comercial y embebido; prohíbe vender la fuente sola. Antes del primer release hay que confirmar qué licencia acompaña a los archivos de fuente dentro del paquete.
 
@@ -28,7 +38,7 @@ Revisión del 20 de octubre de 2026. Fuente: el campo `<license>` del `.nuspec` 
 | Microsoft.NET.Test.Sdk | 17.14.1 | MIT | Tests |
 | coverlet.collector | 6.0.4 | MIT | Tests |
 
-## Decisión: ningún paquete nuevo en la v0.2
+## Decisión: ningún paquete nuevo en la v0.2 (la v0.4 añade solo Whisper.net)
 
 El chat con IA, el JSON, los logs y el Credential Manager usan solo lo que trae .NET (`HttpClient`, `System.Text.Json`, P/Invoke a `advapi32.dll`). Menos dependencias significa menos superficie de ataque en la cadena de suministro y menos licencias que vigilar.
 

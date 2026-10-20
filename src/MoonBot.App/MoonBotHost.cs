@@ -14,6 +14,8 @@ using MoonBot.Core.Tools;
 using MoonBot.Infrastructure.Ai;
 using MoonBot.Infrastructure.Storage;
 using MoonBot.Infrastructure.Tools;
+using MoonBot.Infrastructure.Voice;
+using MoonBot.Core.Voice;
 using MoonBot.Platform.Windows;
 
 namespace MoonBot.App;
@@ -47,6 +49,8 @@ public sealed class MoonBotHost : IDisposable
     public UiApprovalGate Approvals { get; } = new();
     public ToolRouter Tools { get; }
     public ChatSession Chat { get; }
+    public VoiceModelStore VoiceModels { get; } =
+        new(AppPaths.ModelsDirectory, new HttpClient { Timeout = TimeSpan.FromMinutes(30) });
     public MoonSettings Settings { get; private set; }
     public Localizer Text { get; private set; }
     public bool IsFirstRun { get; }
@@ -89,6 +93,28 @@ public sealed class MoonBotHost : IDisposable
 
     // Cambios pequeños (skin, posición) sin tocar el proveedor.
     public void Update(Func<MoonSettings, MoonSettings> change) => Apply(change(Settings));
+
+    // Motor de voz del modelo elegido, o null si ese modelo aún no está descargado.
+    // Se crea una sola vez por modelo: cargarlo cuesta cientos de MB de memoria.
+    private WhisperSpeechToText? _speechToText;
+    private string? _speechModelId;
+
+    public ISpeechToText? SpeechToText
+    {
+        get
+        {
+            var model = Infrastructure.Voice.VoiceModels.Get(Settings.VoiceModel);
+            if (!VoiceModels.IsInstalled(model))
+                return null;
+            if (_speechModelId != model.Id)
+            {
+                _speechToText?.Dispose();
+                _speechToText = new WhisperSpeechToText(VoiceModels.PathOf(model));
+                _speechModelId = model.Id;
+            }
+            return _speechToText;
+        }
+    }
 
     public void DeleteApiKey()
     {
@@ -148,6 +174,7 @@ public sealed class MoonBotHost : IDisposable
     public void Dispose()
     {
         Log.Info("MoonBot closed.");
+        _speechToText?.Dispose();
         Http.Dispose();
     }
 

@@ -26,6 +26,7 @@
                     <Button x:Name="NavAi" Classes="nav" />
                     <Button x:Name="NavAppearance" Classes="nav" />
                     <Button x:Name="NavFiles" Classes="nav" />
+                    <Button x:Name="NavVoice" Classes="nav" />
                     <Button x:Name="NavAbout" Classes="nav" />
                 </StackPanel>
 
@@ -147,6 +148,45 @@
                         </ItemsControl>
                         <TextBlock x:Name="CloudNote" Classes="muted" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0" />
                         <TextBlock x:Name="AuditNote" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ===== Voz ===== -->
+        <ScrollViewer x:Name="VoicePage" Grid.Column="1" IsVisible="False">
+            <StackPanel Margin="36,26,36,30" MaxWidth="660" HorizontalAlignment="Left" Spacing="16">
+                <TextBlock x:Name="VoiceTitle" Classes="h1" />
+                <Border Classes="glass">
+                    <StackPanel Spacing="8">
+                        <ToggleSwitch x:Name="VoiceSwitch" />
+                        <TextBlock x:Name="VoiceHelp" TextWrapping="Wrap" LineHeight="20" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
+                            <Border CornerRadius="10" Padding="14,8" Background="#26FFFFFF" BorderBrush="#55FFFFFF"
+                                    BorderThickness="1,1,1,3">
+                                <TextBlock Text="Ctrl ▸" FontWeight="SemiBold" FontSize="14" />
+                            </Border>
+                            <TextBlock Text="🎙  →  ✍️" FontSize="18" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock x:Name="VoicePrivacy" Classes="muted" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="glass">
+                    <StackPanel>
+                        <TextBlock x:Name="VoiceModelLabel" Classes="label" Margin="0,0,0,6" />
+                        <ComboBox x:Name="VoiceModelBox" MinWidth="340" />
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,10,0,0">
+                            <TextBlock x:Name="VoiceModelStatus" VerticalAlignment="Center" FontSize="13" />
+                            <Button x:Name="VoiceDownloadButton" Classes="primary" />
+                        </StackPanel>
+                        <ProgressBar x:Name="VoiceProgress" Minimum="0" Maximum="1" Height="6" Margin="0,10,0,0"
+                                     IsVisible="False" Width="340" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="VoiceChecksum" Classes="muted" FontSize="11.5" TextWrapping="Wrap" Margin="0,8,0,0" />
+                        <TextBlock x:Name="VoiceLanguageLabel" Classes="label" />
+                        <ComboBox x:Name="VoiceLanguageBox" MinWidth="280" />
+                        <TextBlock x:Name="VoiceTargetLabel" Classes="label" />
+                        <ComboBox x:Name="VoiceTargetBox" MinWidth="340" />
+                        <TextBlock x:Name="VoiceAdminNote" Classes="muted" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0" />
                     </StackPanel>
                 </Border>
             </StackPanel>

@@ -451,6 +451,14 @@ public partial class ChatPopup : Window
     private static IEnumerable<string> FilesFrom(DragEventArgs e)
         => e.DataTransfer.TryGetFiles()?.Select(f => f.TryGetLocalPath()).OfType<string>() ?? [];
 
+    // El dictado puede mandar el texto aquí en vez de escribirlo en otra app.
+    public void AppendToInput(string text)
+    {
+        Input.Text = string.IsNullOrWhiteSpace(Input.Text) ? text : Input.Text.TrimEnd() + " " + text;
+        Input.CaretIndex = Input.Text.Length;
+        Input.Focus();
+    }
+
     public void Attach(IEnumerable<string> paths)
     {
         foreach (var path in paths)

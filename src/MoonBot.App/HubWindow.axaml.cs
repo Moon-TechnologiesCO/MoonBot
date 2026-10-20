@@ -19,7 +19,7 @@ using MoonBot.Infrastructure.Storage;
 
 namespace MoonBot.App;
 
-public enum HubPage { General, Ai, Appearance, Files, About }
+public enum HubPage { General, Ai, Appearance, Files, Voice, About }
 
 // El "Hub": todos los ajustes de MoonBot. El chat vive en ChatPopup, junto a la luna.
 public partial class HubWindow : Window
@@ -43,6 +43,7 @@ public partial class HubWindow : Window
         NavAi.Click += (_, _) => ShowPage(HubPage.Ai);
         NavAppearance.Click += (_, _) => ShowPage(HubPage.Appearance);
         NavFiles.Click += (_, _) => ShowPage(HubPage.Files);
+        NavVoice.Click += (_, _) => ShowPage(HubPage.Voice);
         NavAbout.Click += (_, _) => ShowPage(HubPage.About);
         OpenChatButton.Click += (_, _) => ChatRequested?.Invoke(this, EventArgs.Empty);
 
@@ -67,6 +68,29 @@ public partial class HubWindow : Window
             if (_loadingForm) return;
             _host.Update(s => s with { ToolsEnabled = ToolsSwitch.IsChecked == true });
         };
+
+        VoiceSwitch.IsCheckedChanged += (_, _) =>
+        {
+            if (_loadingForm) return;
+            _host.Update(s => s with { VoiceEnabled = VoiceSwitch.IsChecked == true });
+        };
+        VoiceModelBox.SelectionChanged += (_, _) =>
+        {
+            if (_loadingForm || VoiceModelBox.SelectedIndex < 0) return;
+            _host.Update(s => s with { VoiceModel = Infrastructure.Voice.VoiceModels.All[VoiceModelBox.SelectedIndex].Id });
+        };
+        VoiceLanguageBox.SelectionChanged += (_, _) =>
+        {
+            if (_loadingForm || VoiceLanguageBox.SelectedIndex < 0) return;
+            var code = VoiceLanguageBox.SelectedIndex == 0 ? "auto" : Localizer.Languages[VoiceLanguageBox.SelectedIndex - 1].Code;
+            _host.Update(s => s with { VoiceLanguage = code });
+        };
+        VoiceTargetBox.SelectionChanged += (_, _) =>
+        {
+            if (_loadingForm || VoiceTargetBox.SelectedIndex < 0) return;
+            _host.Update(s => s with { VoiceTarget = (VoiceTarget)VoiceTargetBox.SelectedIndex });
+        };
+        VoiceDownloadButton.Click += async (_, _) => await DownloadVoiceModelAsync();
 
         OpenLogsButton.Click += async (_, _) => await OpenFolderAsync(AppPaths.LogsDirectory);
         OpenDataButton.Click += async (_, _) => await OpenFolderAsync(AppPaths.SettingsDirectory);
@@ -106,12 +130,14 @@ public partial class HubWindow : Window
         AiPage.IsVisible = page == HubPage.Ai;
         AppearancePage.IsVisible = page == HubPage.Appearance;
         FilesPage.IsVisible = page == HubPage.Files;
+        VoicePage.IsVisible = page == HubPage.Voice;
         AboutPage.IsVisible = page == HubPage.About;
 
         NavGeneral.Classes.Set("selected", page == HubPage.General);
         NavAi.Classes.Set("selected", page == HubPage.Ai);
         NavAppearance.Classes.Set("selected", page == HubPage.Appearance);
         NavFiles.Classes.Set("selected", page == HubPage.Files);
+        NavVoice.Classes.Set("selected", page == HubPage.Voice);
         NavAbout.Classes.Set("selected", page == HubPage.About);
     }
 
@@ -125,6 +151,7 @@ public partial class HubWindow : Window
         NavAi.Content = "✨   " + t["nav.ai"];
         NavAppearance.Content = "🎨   " + t["nav.appearance"];
         NavFiles.Content = "🗂   " + t["nav.files"];
+        NavVoice.Content = "🎙   " + t["nav.voice"];
         NavAbout.Content = "🌙   " + t["nav.about"];
         OpenChatButton.Content = t["tray.chat"];
 
@@ -167,6 +194,26 @@ public partial class HubWindow : Window
         AuditNote.Text = t["files.audit"];
         FoldersList.ItemsSource = _host.Sandbox.Roots.Values.ToList();
 
+        VoiceTitle.Text = t["voice.title"];
+        VoiceSwitch.Content = t["voice.enable"];
+        VoiceHelp.Text = t["voice.help"];
+        VoicePrivacy.Text = t["voice.privacy"];
+        VoiceModelLabel.Text = t["voice.model"];
+        VoiceDownloadButton.Content = t["voice.download"];
+        VoiceChecksum.Text = t["voice.checksum"];
+        VoiceLanguageLabel.Text = t["voice.language"];
+        VoiceTargetLabel.Text = t["voice.target"];
+        VoiceAdminNote.Text = t["voice.adminNote"];
+        var voiceModelIndex = VoiceModelBox.SelectedIndex;
+        VoiceModelBox.ItemsSource = new[] { t["voice.model.base"], t["voice.model.small"] };
+        VoiceModelBox.SelectedIndex = voiceModelIndex;
+        var voiceLanguageIndex = VoiceLanguageBox.SelectedIndex;
+        VoiceLanguageBox.ItemsSource = new[] { t["voice.language.auto"] }.Concat(Localizer.Languages.Select(l => l.NativeName)).ToList();
+        VoiceLanguageBox.SelectedIndex = voiceLanguageIndex;
+        var voiceTargetIndex = VoiceTargetBox.SelectedIndex;
+        VoiceTargetBox.ItemsSource = new[] { t["voice.target.cursor"], t["voice.target.chat"] };
+        VoiceTargetBox.SelectedIndex = voiceTargetIndex;
+
         AboutTitle.Text = t["about.title"];
         AboutTagline.Text = t["app.tagline"];
         AboutVersion.Text = t.Format("about.version", AppVersion);
@@ -178,7 +225,7 @@ public partial class HubWindow : Window
         foreach (var (button, key) in new (Button, string)[]
                  {
                      (NavGeneral, "nav.general"), (NavAi, "nav.ai"), (NavAppearance, "nav.appearance"),
-                     (NavFiles, "nav.files"), (NavAbout, "nav.about")
+                     (NavFiles, "nav.files"), (NavVoice, "nav.voice"), (NavAbout, "nav.about")
                  })
             AutomationProperties.SetName(button, t[key]);
 
@@ -260,6 +307,12 @@ public partial class HubWindow : Window
         KeySection.IsVisible = s.Provider == ProviderKind.OpenAiCompatible;
         PlacementBox.SelectedIndex = (int)s.Placement;
         ToolsSwitch.IsChecked = s.ToolsEnabled;
+        VoiceSwitch.IsChecked = s.VoiceEnabled;
+        VoiceModelBox.SelectedIndex = Math.Max(0, Infrastructure.Voice.VoiceModels.All.ToList().FindIndex(m => m.Id == s.VoiceModel));
+        VoiceLanguageBox.SelectedIndex = s.VoiceLanguage == "auto"
+            ? 0 : 1 + Math.Max(0, Localizer.Languages.ToList().FindIndex(l => l.Code == s.VoiceLanguage));
+        VoiceTargetBox.SelectedIndex = (int)s.VoiceTarget;
+        UpdateVoiceStatus();
         UpdateKeyStatus();
 
         _loadingForm = false;
@@ -353,6 +406,57 @@ public partial class HubWindow : Window
             AiStatus.Foreground = BadBrush;
             AiStatus.Text = _host.Describe(e);
         }
+    }
+
+    // ---------- Voz ----------
+
+    private CancellationTokenSource? _download;
+
+    private void UpdateVoiceStatus()
+    {
+        var model = Infrastructure.Voice.VoiceModels.Get(_host.Settings.VoiceModel);
+        var installed = _host.VoiceModels.IsInstalled(model);
+        VoiceModelStatus.Foreground = installed ? OkBrush : MutedBrush;
+        VoiceModelStatus.Text = _host.Text[installed ? "voice.installed" : "voice.notInstalled"];
+        VoiceDownloadButton.IsVisible = !installed && _download is null;
+    }
+
+    private async Task DownloadVoiceModelAsync()
+    {
+        var model = Infrastructure.Voice.VoiceModels.Get(_host.Settings.VoiceModel);
+        _download = new CancellationTokenSource();
+        VoiceDownloadButton.IsVisible = false;
+        VoiceProgress.IsVisible = true;
+        VoiceProgress.Value = 0;
+        var progress = new Progress<double>(p =>
+        {
+            VoiceProgress.Value = p;
+            VoiceModelStatus.Foreground = MutedBrush;
+            VoiceModelStatus.Text = _host.Text.Format("voice.downloading", (int)(p * 100));
+        });
+
+        try
+        {
+            await _host.VoiceModels.DownloadAsync(model, progress, _download.Token);
+            _host.Log.Info($"Voice model downloaded and verified: {model.Id}");
+        }
+        catch (Exception e)
+        {
+            _host.Log.Error("Voice model download failed", e);
+            VoiceModelStatus.Foreground = BadBrush;
+            VoiceModelStatus.Text = _host.Text.Format("voice.downloadFailed", e.Message);
+        }
+        finally
+        {
+            _download.Dispose();
+            _download = null;
+            VoiceProgress.IsVisible = false;
+        }
+
+        if (_host.VoiceModels.IsInstalled(model))
+            UpdateVoiceStatus();
+        else
+            VoiceDownloadButton.IsVisible = true;
     }
 
     private async Task OpenFolderAsync(string path)

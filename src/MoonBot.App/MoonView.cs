@@ -31,6 +31,10 @@ public class MoonView : Control
     public MoonSkin Skin { get; set; } = MoonSkins.All[0];
     public string Accessory { get; set; } = "none";
 
+    // Dictado: mientras escucha, ondas alrededor que laten con el volumen de la voz (0..1).
+    public bool IsListening { get; set; }
+    public double ListenLevel { get; set; }
+
     // Posición del cursor en coordenadas de este control, o null si no está encima.
     public Point? LookTarget { get; set; }
 
@@ -72,6 +76,8 @@ public class MoonView : Control
         _look += (LookGoal(center, r) - _look) * k;
 
         DrawHalo(context, center, r, t);
+        if (IsListening)
+            DrawListeningWaves(context, center, r, t);
 
         // El satélite de Working pasa por detrás de la luna en la mitad de su órbita.
         var orbitAngle = t * 2.2;
@@ -202,7 +208,7 @@ public class MoonView : Control
                     break;
 
                 default:
-                    var open = EyeOpenness(t) * (State == MoonState.Thinking ? 0.75 : 1.0);
+                    var open = IsListening ? 1.0 : EyeOpenness(t) * (State == MoonState.Thinking ? 0.75 : 1.0);
                     var h = 0.09 * r * Math.Max(open, 0.08);
                     context.DrawEllipse(Skin.Ink, null, p, 0.09 * r, h);
                     if (open > 0.5) // brillo en el ojo
@@ -218,6 +224,12 @@ public class MoonView : Control
         var pen = new Pen(Skin.Ink, 0.04 * r, lineCap: PenLineCap.Round);
         var p = new Point(center.X, center.Y + 0.32 * r);
         var w = 0.12 * r;
+
+        if (IsListening) // "o" de sorpresa: está escuchando
+        {
+            context.DrawEllipse(Skin.Ink, null, p, 0.05 * r, 0.06 * r);
+            return;
+        }
 
         if (IsTalking)
         {
@@ -372,6 +384,21 @@ public class MoonView : Control
     }
 
     // ---------- Efectos por estado ----------
+
+    // Tres anillos que salen de la luna; su intensidad sigue al volumen del micrófono.
+    private void DrawListeningWaves(DrawingContext context, Point center, double r, double t)
+    {
+        var level = Math.Clamp(ListenLevel, 0, 1);
+        for (var i = 0; i < 3; i++)
+        {
+            var phase = (t * 0.9 + i / 3.0) % 1.0;
+            var radius = r * (1.05 + 0.45 * phase);
+            var alpha = (byte)(255 * (1 - phase) * (0.25 + 0.75 * level));
+            var c = Skin.AccentColor;
+            context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B)), 0.05 * r),
+                center, radius, radius);
+        }
+    }
 
     private void DrawSatellite(DrawingContext context, Point center, double r, double angle)
     {
