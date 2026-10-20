@@ -37,3 +37,30 @@
 - Probablemente los clics sobre las zonas transparentes no atraviesan la ventana hacia la app de atrás (sin verificar todavía).
 - Avalonia solo conoce la posición del cursor dentro de su ventana. Para que los ojos sigan al cursor por toda la pantalla hace falta `GetCursorPos`.
 - `Position` hay que asignarlo antes de mostrar la ventana. En `Opened` se ignora y Windows la coloca en el monitor del cursor.
+
+
+## 4. Proveedores de IA detrás de una interfaz
+
+**Decisión:** `Core` define `IAiProvider` (respuesta por streaming y lista de modelos). La v0.2 trae dos implementaciones: Ollama (local, por defecto) y "compatible con OpenAI" (nube o LM Studio).
+
+**Por qué:** MoonBot no debe depender de un solo proveedor. `ChatSession` y sus tests no saben si hablan con Ollama, con la nube o con un falso.
+
+**Modelo por defecto:** `gemma3:4b`. En la prueba del 20 de octubre de 2026, `qwen3:4b` escribió su razonamiento dentro de la respuesta incluso con `think:false` y tardó 28 s en un saludo; `gemma3:4b` respondió directo.
+
+**Pendiente:** el proveedor de Anthropic se añadirá en la etapa 4 con su SDK oficial de C#, después de revisar su licencia.
+
+
+## 5. Una API key solo viaja por HTTPS o dentro de este PC
+
+**Decisión:** `AiProviderFactory` rechaza (`AiErrorKind.InsecureKey`) cualquier combinación de clave + `http://` hacia otra máquina.
+
+**Por qué:** por HTTP la clave viaja en texto plano y cualquiera en la misma red (por ejemplo, un wifi público) puede leerla. `http://localhost` es aceptable porque el tráfico no sale del equipo.
+
+
+## 6. Idiomas en JSON incrustado, inglés por defecto
+
+**Decisión:** 8 idiomas (en, es, pt, fr, de, it, zh, ja) en `src/MoonBot.Core/Localization/strings-*.json`. El inglés es el predeterminado y la referencia. Un test exige que cada idioma tenga todas las claves y los mismos `{0}`.
+
+**Por qué no `.resx`:** el JSON lo puede editar un traductor sin Visual Studio, y el test detecta frases olvidadas.
+
+**Riesgo aceptado:** las traducciones las escribió el asistente. Antes de anunciar un idioma, debe revisarlo un hablante nativo.

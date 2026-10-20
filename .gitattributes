@@ -1,0 +1,13 @@
+# Normaliza finales de línea: en el repositorio siempre LF; Git los convierte al hacer checkout.
+* text=auto
+
+*.cs      text diff=csharp
+*.axaml   text
+*.csproj  text
+*.slnx    text
+*.json    text
+*.md      text
+*.ps1     text eol=crlf
+
+*.png     binary
+*.ico     binary

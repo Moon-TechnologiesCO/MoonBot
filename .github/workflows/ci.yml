@@ -1,0 +1,31 @@
+# Compila y ejecuta todos los tests en cada push y pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Mínimo privilegio: este workflow solo necesita leer el código.
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore MoonBot.slnx
+
+      - name: Build
+        run: dotnet build MoonBot.slnx --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test MoonBot.slnx --no-build --configuration Release --blame-hang-timeout 2m
