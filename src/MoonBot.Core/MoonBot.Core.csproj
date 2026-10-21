@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Traducciones incrustadas en la DLL. LogicalName fija el nombre del recurso
+       y evita que MSBuild trate "strings-es" como un recurso satélite de cultura. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Localization\strings-*.json"
+                      LogicalName="MoonBot.Strings.$([System.String]::Copy('%(Filename)').Replace('strings-', '')).json" />
+  </ItemGroup>
+
 </Project>

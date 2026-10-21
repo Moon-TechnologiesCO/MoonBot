@@ -1,0 +1,226 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:MoonBot.App"
+        x:Class="MoonBot.App.ChatPopup"
+        Width="440" Height="640" CanResize="False"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Foreground="{StaticResource TextBrush}"
+        Title="MoonBot">
+
+    <Window.Resources>
+        <StreamGeometry x:Key="IconSend">M3,20 L22,12 L3,4 L3,10 L15,12 L3,14 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconStop">M7,7 H17 V17 H7 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconPlus">M11,4 H13 V11 H20 V13 H13 V20 H11 V13 H4 V11 H11 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconSettings">M3,5 H21 V7 H3 Z M3,11 H21 V13 H3 Z M3,17 H21 V19 H3 Z M8,3 A3,3 0 1 1 8,9 A3,3 0 1 1 8,3 Z M16,9 A3,3 0 1 1 16,15 A3,3 0 1 1 16,9 Z M10,15 A3,3 0 1 1 10,21 A3,3 0 1 1 10,15 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconClose">M5.6,4.2 L12,10.6 L18.4,4.2 L19.8,5.6 L13.4,12 L19.8,18.4 L18.4,19.8 L12,13.4 L5.6,19.8 L4.2,18.4 L10.6,12 L4.2,5.6 Z</StreamGeometry>
+        <StreamGeometry x:Key="IconClip">M16.5,6 V17.5 A4,4 0 0 1 8.5,17.5 V5 A2.5,2.5 0 0 1 13.5,5 V15.5 A1,1 0 0 1 11.5,15.5 V6 H10 V15.5 A2.5,2.5 0 0 0 15,15.5 V5 A4,4 0 0 0 7,5 V17.5 A5.5,5.5 0 0 0 18,17.5 V6 Z</StreamGeometry>
+    </Window.Resources>
+
+    <!-- La tarjeta tiene margen para que se vea su sombra sobre el escritorio. -->
+    <Border x:Name="Card" Margin="12" CornerRadius="26"
+            Background="{StaticResource NightGradient}"
+            BorderBrush="#30FFFFFF" BorderThickness="1"
+            BoxShadow="0 18 48 0 #A0000000" ClipToBounds="True">
+        <Panel>
+            <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
+
+                <!-- Cabecera: se puede arrastrar para mover la ventana -->
+                <Grid x:Name="Header" Margin="14,12,10,4" ColumnDefinitions="Auto,*,Auto,Auto,Auto"
+                      Background="Transparent">
+                    <local:MoonView x:Name="MiniMoon" Width="46" Height="46" IsHitTestVisible="False" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0" Spacing="1">
+                        <TextBlock Text="MoonBot" FontWeight="SemiBold" FontSize="15.5" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse x:Name="StatusDot" Width="7" Height="7" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText" Classes="muted" FontSize="11.5" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button x:Name="NewChatButton" Grid.Column="2" Classes="icon">
+                        <PathIcon Data="{StaticResource IconPlus}" Width="13" Height="13" />
+                    </Button>
+                    <Button x:Name="HubButton" Grid.Column="3" Classes="icon">
+                        <PathIcon Data="{StaticResource IconSettings}" Width="14" Height="14" />
+                    </Button>
+                    <Button x:Name="CloseButton" Grid.Column="4" Classes="icon">
+                        <PathIcon Data="{StaticResource IconClose}" Width="12" Height="12" />
+                    </Button>
+                </Grid>
+
+                <!-- Conversación -->
+                <ScrollViewer x:Name="ChatScroll" Grid.Row="1" Padding="14,6,14,6">
+                    <ItemsControl x:Name="Messages">
+                        <ItemsControl.DataTemplates>
+
+                            <DataTemplate DataType="local:MessageEntry">
+                                <Border Margin="0,5" Padding="14,10" MaxWidth="340"
+                                        HorizontalAlignment="{Binding Alignment}"
+                                        Background="{Binding Background}"
+                                        BorderBrush="{Binding BorderBrush}" BorderThickness="1"
+                                        CornerRadius="{Binding Corners}">
+                                    <local:MarkdownText Markdown="{Binding Text}" Foreground="{Binding Foreground}"
+                                                        TextWrapping="Wrap" FontSize="13.5" LineHeight="20" />
+                                </Border>
+                            </DataTemplate>
+
+                            <DataTemplate DataType="local:NoticeEntry">
+                                <TextBlock Margin="6,4" Text="{Binding Text}" Foreground="{Binding Foreground}"
+                                           FontSize="12" TextWrapping="Wrap" />
+                            </DataTemplate>
+
+                            <DataTemplate DataType="local:FilesEntry">
+                                <Border Margin="0,5" Padding="10,8" CornerRadius="16"
+                                        Background="#12FFFFFF" BorderBrush="#22FFFFFF" BorderThickness="1">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Title}" Classes="muted" FontSize="12" Margin="4,0,0,4" />
+                                        <ItemsControl ItemsSource="{Binding Files}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="local:FileCard">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,3">
+                                                        <TextBlock Text="{Binding Glyph}" FontSize="20" VerticalAlignment="Center" Margin="4,0,10,0" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <TextBlock Text="{Binding Folder}" Classes="muted" FontSize="11"
+                                                                       TextTrimming="LeadingCharacterEllipsis" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" Margin="6,0,0,0">
+                                                            <Button Classes="chip" Padding="9,4" FontSize="11.5"
+                                                                    Content="{Binding OpenText}"
+                                                                    Command="{Binding OpenCommand}" />
+                                                            <Button Classes="chip" Padding="9,4" FontSize="11.5"
+                                                                    Content="{Binding RevealText}"
+                                                                    Command="{Binding RevealCommand}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+
+                            <DataTemplate DataType="local:ApprovalEntry">
+                                <Border Margin="0,6" Padding="14,12" CornerRadius="18"
+                                        Background="#1FF5C46B" BorderBrush="#99F5C46B" BorderThickness="1.5">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13.5" TextWrapping="Wrap" />
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding StringFormat='•  {0}'}" FontSize="12"
+                                                               Classes="muted" TextWrapping="Wrap" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock IsVisible="{Binding HasTarget}" Text="{Binding Target, StringFormat='→  {0}'}"
+                                                   FontSize="12" TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"
+                                                    IsVisible="{Binding IsPending}" Margin="0,4,0,0">
+                                            <Button Classes="ghost" Content="{Binding DenyText}" Command="{Binding DenyCommand}" />
+                                            <Button Classes="primary" Content="{Binding AllowText}" Command="{Binding AllowCommand}" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Result}" IsVisible="{Binding !IsPending}"
+                                                   HorizontalAlignment="Right" FontSize="12" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+
+                        </ItemsControl.DataTemplates>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Estado vacío: saludo + acciones -->
+                <StackPanel x:Name="EmptyState" Grid.Row="1" VerticalAlignment="Center" Margin="22,0" Spacing="6">
+                    <TextBlock x:Name="GreetingText" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock x:Name="EmptyBody" Classes="muted" TextWrapping="Wrap" FontSize="13" />
+                    <Grid ColumnDefinitions="*,8,*" RowDefinitions="Auto,8,Auto" Margin="0,16,0,0">
+                        <Button x:Name="ActionFind" Classes="action">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="🔍" FontSize="20" />
+                                <TextBlock x:Name="ActionFindTitle" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock x:Name="ActionFindBody" Classes="muted" FontSize="11.5" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ActionOrganize" Grid.Column="2" Classes="action">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="🗂" FontSize="20" />
+                                <TextBlock x:Name="ActionOrganizeTitle" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock x:Name="ActionOrganizeBody" Classes="muted" FontSize="11.5" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="ActionAsk" Grid.Row="2" Classes="action">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="💬" FontSize="20" />
+                                <TextBlock x:Name="ActionAskTitle" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock x:Name="ActionAskBody" Classes="muted" FontSize="11.5" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Button>
+                        <Border Grid.Row="2" Grid.Column="2" CornerRadius="16" BorderBrush="#40B6A4FF"
+                                BorderThickness="1.5" Padding="14,12" Background="#0AFFFFFF">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="📎" FontSize="20" />
+                                <TextBlock x:Name="ActionDropTitle" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock x:Name="ActionDropBody" Classes="muted" FontSize="11.5" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Archivos adjuntos -->
+                <Border x:Name="AttachBar" Grid.Row="2" Margin="14,4,14,0" Padding="10,6" CornerRadius="12"
+                        Background="#26B6A4FF" IsVisible="False">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock x:Name="AttachText" VerticalAlignment="Center" FontSize="12.5"
+                                   TextTrimming="CharacterEllipsis" />
+                        <Button x:Name="ClearAttachButton" Grid.Column="1" Classes="icon" Padding="6">
+                            <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Chips de acción rápida -->
+                <ScrollViewer Grid.Row="3" Margin="14,8,14,0" HorizontalScrollBarVisibility="Hidden"
+                              VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button x:Name="ChipFind" Classes="chip" />
+                        <Button x:Name="ChipDownloads" Classes="chip" />
+                        <Button x:Name="ChipOrganize" Classes="chip" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Compositor -->
+                <Border Grid.Row="4" Margin="12,8,12,12" CornerRadius="20" Padding="4"
+                        Background="#1AFFFFFF" BorderBrush="#2AFFFFFF" BorderThickness="1">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="Input" Classes="bare" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MaxHeight="140" MinHeight="40" FontSize="13.5" Padding="10,9"
+                                 VerticalContentAlignment="Center" />
+                        <Button x:Name="SendButton" Grid.Column="1" Classes="primary" Width="40" Height="40"
+                                Padding="0" CornerRadius="14" VerticalAlignment="Bottom"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <PathIcon Data="{StaticResource IconSend}" Width="15" Height="15" />
+                        </Button>
+                        <Button x:Name="StopButton" Grid.Column="1" Classes="ghost" Width="40" Height="40"
+                                Padding="0" CornerRadius="14" VerticalAlignment="Bottom" IsVisible="False"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                            <PathIcon Data="{StaticResource IconStop}" Width="13" Height="13" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Capa al arrastrar archivos encima -->
+            <Border x:Name="DropOverlay" IsVisible="False" IsHitTestVisible="False" CornerRadius="26"
+                    Background="#E61B1446" BorderBrush="{StaticResource LilacBrush}" BorderThickness="2">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                    <PathIcon Data="{StaticResource IconClip}" Width="34" Height="34" Foreground="{StaticResource LilacBrush}" />
+                    <TextBlock x:Name="DropText" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Panel>
+    </Border>
+</Window>

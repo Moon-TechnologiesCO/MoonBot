@@ -4,6 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.2.0</Version>
+    <Product>MoonBot</Product>
+    <Company>Moon Technologies</Company>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,5 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MoonBot.Core\MoonBot.Core.csproj" />
+    <ProjectReference Include="..\MoonBot.Infrastructure\MoonBot.Infrastructure.csproj" />
+    <ProjectReference Include="..\MoonBot.Platform.Windows\MoonBot.Platform.Windows.csproj" />
   </ItemGroup>
 </Project>
