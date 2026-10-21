@@ -1,0 +1,48 @@
+name: 🐞 Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping! **Never paste API keys or personal data here.**
+        Security problems go to the **Security** tab → *Report a vulnerability*, not to public issues.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the chat
+        2. Type /find report
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: MoonBot version
+      description: Hub → About
+      placeholder: 0.4.0
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+  - type: input
+    id: model
+    attributes:
+      label: AI provider and model
+      placeholder: Ollama · gemma3:4b
+  - type: textarea
+    id: log
+    attributes:
+      label: Log lines (optional)
+      description: Hub → About → Open logs folder. Logs never contain your messages, but check them before pasting.
+      render: text
