@@ -1,0 +1,10 @@
+# Quién debe aprobar los cambios de otras personas.
+# Todo el repositorio: el fundador de Moon Technologies.
+*                    @jdswe
+
+# Zonas sensibles: seguridad, permisos del agente y la CI. Revísalas con más cuidado.
+/src/MoonBot.Core/Tools/                 @jdswe
+/src/MoonBot.Infrastructure/Tools/       @jdswe
+/src/MoonBot.Platform.Windows/           @jdswe
+/.github/                                @jdswe
+/SECURITY.md                             @jdswe
