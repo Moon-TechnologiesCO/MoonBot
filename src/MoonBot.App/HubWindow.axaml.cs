@@ -96,7 +96,7 @@ public partial class HubWindow : Window
         OpenDataButton.Click += async (_, _) => await OpenFolderAsync(AppPaths.SettingsDirectory);
 
         _host.Machine.StateChanged += (_, e) => Avalonia.Threading.Dispatcher.UIThread.Post(() => Logo.State = e.To);
-        _host.SettingsChanged += (_, _) => { ApplyTexts(); LoadForm(); };
+        _host.SettingsChanged += (_, _) => Refresh();
 
         // Cerrar la ventana solo la oculta: MoonBot sigue en la bandeja.
         Closing += (_, e) =>
@@ -108,8 +108,7 @@ public partial class HubWindow : Window
             }
         };
 
-        ApplyTexts();
-        LoadForm();
+        Refresh();
         ShowPage(HubPage.General);
     }
 
@@ -142,6 +141,25 @@ public partial class HubWindow : Window
     }
 
     // ---------- Textos ----------
+
+    // Vuelve a pintar textos y formularios con los ajustes actuales.
+    // Mientras tanto, los cambios en las listas son "del código", no del usuario: los manejadores
+    // de SelectionChanged los ignoran. Sin esto, reasignar una lista guardaba ajustes, eso volvía a
+    // llamar a Refresh, y así sin fin (StackOverflowException al elegir un avatar).
+    private void Refresh()
+    {
+        var wasLoading = _loadingForm;
+        _loadingForm = true;
+        try
+        {
+            ApplyTexts();
+            LoadForm();
+        }
+        finally
+        {
+            _loadingForm = wasLoading;
+        }
+    }
 
     private void ApplyTexts()
     {
@@ -285,7 +303,8 @@ public partial class HubWindow : Window
         button.Classes.Add("tile");
         button.Classes.Set("selected", selected);
         AutomationProperties.SetName(button, name);
-        button.Click += (_, _) => onClick();
+        // Se aplica después del clic: aplicar reconstruye las miniaturas, incluido este botón.
+        button.Click += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(onClick);
         return button;
     }
 

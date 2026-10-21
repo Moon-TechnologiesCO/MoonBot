@@ -72,6 +72,11 @@ public sealed class MoonBotHost : IDisposable
 
     public void Apply(MoonSettings settings, string? newApiKey = null)
     {
+        // Nada cambió: no se guarda ni se avisa. Corta de raíz cualquier bucle
+        // "guardar -> avisar -> refrescar -> guardar lo mismo".
+        if (settings == Settings && string.IsNullOrEmpty(newApiKey))
+            return;
+
         var providerChanged = settings.Provider != Settings.Provider || settings.BaseUrl != Settings.BaseUrl
                               || settings.Model != Settings.Model || !string.IsNullOrEmpty(newApiKey);
         var provider = providerChanged ? CreateProvider(settings, newApiKey) : null; // validar antes de guardar
