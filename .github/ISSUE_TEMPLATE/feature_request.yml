@@ -1,0 +1,22 @@
+name: ✨ Idea or feature request
+description: Suggest something MoonBot could do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Privacy and permissions
+      description: Would it touch files, the network, the microphone or other apps? What should MoonBot ask before doing it?
